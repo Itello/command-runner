@@ -2,6 +2,8 @@ package CommandRunner;
 
 import CommandRunner.gui.fxml.GUIController;
 import javafx.application.Application;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
@@ -10,8 +12,6 @@ import javafx.stage.Stage;
 
 import java.io.IOException;
 import java.util.List;
-
-//TODO: CSS Styling
 
 public class CommandRunner extends Application {
 
@@ -48,6 +48,7 @@ public class CommandRunner extends Application {
     @Override
     public void start(Stage primaryStage) throws Exception {
         this.primaryStage = primaryStage;
+
         Parent root = FXMLLoader.load(getClass().getResource("gui/fxml/gui.fxml"));
         primaryStage.setTitle(PROGRAM_TITLE);
         primaryStage.getIcons().add(new Image("png/icon.png"));
@@ -64,10 +65,11 @@ public class CommandRunner extends Application {
     public void addSettingsStage() throws IOException {
         FXMLLoader loader = getFXML(SETTINGS_FXML);
         Parent root = loader.load();
-        Stage stage = new Stage();
-        stage.setTitle("Settings");
-        stage.setScene(createScene(root));
-        stage.show();
+        Stage settingsStage = new Stage();
+        settingsStage.setTitle("Settings");
+        settingsStage.getIcons().add(new Image("png/icon.png"));
+        settingsStage.setScene(createScene(root));
+        settingsStage.show();
     }
 
     public static void main(String[] args) {

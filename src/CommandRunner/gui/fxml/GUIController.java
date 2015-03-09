@@ -12,7 +12,6 @@ import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
 import javafx.scene.Parent;
-import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.TextFieldTableCell;
 import javafx.scene.input.ClipboardContent;
@@ -21,7 +20,6 @@ import javafx.scene.input.KeyEvent;
 import javafx.scene.input.TransferMode;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.GridPane;
-import javafx.stage.Stage;
 import javafx.util.converter.DefaultStringConverter;
 
 import java.io.IOException;
@@ -192,8 +190,6 @@ public class GUIController implements Initializable, CommandQueueListener, Comma
     private void removeCommandTableRow(Event event) {
         commandTable.getItems().removeAll(new ArrayList<>(commandTable.getSelectionModel().getSelectedItems()));
         commandTable.getSelectionModel().clearSelection();
-
-        saveCommands();
     }
 
     @FXML
@@ -224,7 +220,7 @@ public class GUIController implements Initializable, CommandQueueListener, Comma
     }
 
     @FXML
-    private void runSelected(ActionEvent event) {
+    private void runSelected(Event event) {
         runCommandRows(commandTable.getSelectionModel().getSelectedItems());
     }
 
@@ -256,6 +252,9 @@ public class GUIController implements Initializable, CommandQueueListener, Comma
                 break;
             case DOWN:
                 keyboardMoveSelectedRows(event, 1);
+                break;
+            case ENTER:
+                runSelected(event);
                 break;
             default:
         }
