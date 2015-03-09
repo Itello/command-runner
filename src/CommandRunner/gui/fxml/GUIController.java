@@ -323,11 +323,7 @@ public class GUIController implements Initializable, CommandQueueListener, Comma
 
     @FXML
     private void runSelected(Event event) {
-        runCommandTreeItems(
-                commandTable.getSelectionModel().getSelectedItems()
-                        .stream()
-                        .collect(Collectors.toList())
-        );
+        runCommandTreeItems(commandTable.getSelectionModel().getSelectedItems());
     }
 
     @FXML
@@ -336,7 +332,7 @@ public class GUIController implements Initializable, CommandQueueListener, Comma
     }
 
     private void runCommandTreeItems(List<TreeItem<CommandTableRow>> treeItemsToRun) {
-        Set<CommandTableCommandRow> commandRowsToRun = new HashSet<>();
+        List<CommandTableCommandRow> commandRowsToRun = new ArrayList<>();
         treeItemsToRun.forEach(item -> addAllCommandRowsForTreeItem(item, commandRowsToRun));
 
         commandQueue.setCommands(
@@ -349,9 +345,14 @@ public class GUIController implements Initializable, CommandQueueListener, Comma
         commandQueue.start();
     }
 
-    private void addAllCommandRowsForTreeItem(TreeItem<CommandTableRow> item, Set<CommandTableCommandRow> commandRows) {
+    private void addAllCommandRowsForTreeItem(TreeItem<CommandTableRow> item, List<CommandTableCommandRow> commandRows) {
         CommandTableRow row = item.getValue();
+
         if (row instanceof CommandTableCommandRow) {
+            if (commandRows.contains(row)) {
+                return;
+            }
+
             CommandTableCommandRow commandRow = (CommandTableCommandRow) row;
             commandRow.getCommand().setCommandStatus(CommandStatus.IDLE);
             commandRows.add(commandRow);

@@ -11,8 +11,6 @@ import javafx.stage.Stage;
 import java.io.IOException;
 import java.util.List;
 
-// TODO Help or hover info textbox (What is directory?)
-
 public class CommandRunner extends Application {
 
     private static final String ADD_COMMAND_FXML = "gui/fxml/addCommand.fxml";
