@@ -6,7 +6,7 @@
 
 <StackPane xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="CommandRunner.gui.fxml.GUIController">
     <children>
-        <GridPane alignment="center" hgap="10" prefHeight="600.0" prefWidth="640.0" vgap="10">
+        <GridPane alignment="center" hgap="10" vgap="10">
             <columnConstraints>
                 <ColumnConstraints />
             </columnConstraints>
@@ -17,12 +17,12 @@
                 <RowConstraints maxHeight="150.0" minHeight="10.0" prefHeight="150.0" />
             </rowConstraints>
             <children>
-                <TableView fx:id="commandTable" editable="true" onKeyPressed="#tableKeyPressed" GridPane.rowIndex="1">
+                <TableView fx:id="commandTable" editable="true" onKeyPressed="#tableKeyPressed" GridPane.hgrow="ALWAYS" GridPane.rowIndex="1" GridPane.vgrow="ALWAYS">
                     <columns>
-                        <TableColumn fx:id="commandColumn" minWidth="178.0" prefWidth="304.0" text="Command" />
-                        <TableColumn fx:id="directoryColumn" minWidth="96.0" prefWidth="151.0" text="Directory" />
-                        <TableColumn fx:id="commentColumn" minWidth="49.0" prefWidth="135.0" text="Comment" />
-                        <TableColumn fx:id="statusColumn" minWidth="47.0" prefWidth="47.0" text="status" />
+                        <TableColumn fx:id="commandColumn" maxWidth="1.7976931348623157E308" minWidth="178.0" prefWidth="314.0" text="Command" />
+                        <TableColumn fx:id="directoryColumn" maxWidth="118.0" minWidth="82.0" prefWidth="82.0" text="Directory" />
+                        <TableColumn fx:id="commentColumn" maxWidth="104.0" minWidth="60.0" prefWidth="104.0" text="Comment" />
+                        <TableColumn fx:id="statusColumn" maxWidth="79.0" minWidth="3.0" prefWidth="79.0" text="status" />
                     </columns>
                     <contextMenu>
                         <ContextMenu>
@@ -33,9 +33,9 @@
                         </ContextMenu>
                     </contextMenu>
                 </TableView>
-                <GridPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="96.0" prefWidth="640.0" GridPane.halignment="CENTER" GridPane.rowIndex="2">
+                <GridPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" GridPane.halignment="CENTER" GridPane.hgrow="ALWAYS" GridPane.rowIndex="2" GridPane.vgrow="ALWAYS">
                     <children>
-                        <StackPane prefHeight="150.0" prefWidth="200.0">
+                        <StackPane prefHeight="150.0" prefWidth="200.0" GridPane.hgrow="ALWAYS" GridPane.vgrow="ALWAYS">
                             <children>
                                 <FlowPane fx:id="addCommandPane" />
                                 <GridPane fx:id="progressPane">
@@ -46,7 +46,7 @@
                                     </columnConstraints>
                                     <rowConstraints>
                                         <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
-                                        <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                                        <RowConstraints minHeight="10.0" prefHeight="30.0" />
                                         <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
                                     </rowConstraints>
                                     <children>
@@ -68,12 +68,12 @@
                         <RowConstraints maxHeight="1.7976931348623157E308" minHeight="10.0" prefHeight="37.0" vgrow="SOMETIMES" />
                     </rowConstraints>
                 </GridPane>
-                <MenuBar fx:id="menuBar" prefHeight="0.0" prefWidth="574.0">
+                <MenuBar fx:id="menuBar" GridPane.hgrow="ALWAYS" GridPane.vgrow="NEVER">
                     <menus>
                         <Menu mnemonicParsing="false" text="File">
                             <items>
+                                <MenuItem mnemonicParsing="false" onAction="#settings" text="Settings" />
                                 <MenuItem mnemonicParsing="false" onAction="#save" text="Save" />
-                                <MenuItem mnemonicParsing="false" onAction="#settings" text="Settings"/>
                             </items>
                         </Menu>
                         <Menu mnemonicParsing="false" text="Run">
@@ -84,7 +84,7 @@
                         </Menu>
                     </menus>
                 </MenuBar>
-                <TextArea fx:id="commandOutputArea" editable="false" prefHeight="147.0" prefWidth="580.0" text="Program started" GridPane.rowIndex="3" />
+                <TextArea fx:id="commandOutputArea" editable="false" text="Program started" GridPane.rowIndex="3" />
             </children>
         </GridPane>
     </children>

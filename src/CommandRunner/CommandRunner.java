@@ -8,16 +8,8 @@ import javafx.scene.Scene;
 import javafx.scene.image.Image;
 import javafx.stage.Stage;
 
-import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
-import java.io.Serializable;
-import java.nio.file.Files;
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
 
 //TODO: CSS Styling
 
@@ -59,8 +51,14 @@ public class CommandRunner extends Application {
         Parent root = FXMLLoader.load(getClass().getResource("gui/fxml/gui.fxml"));
         primaryStage.setTitle(PROGRAM_TITLE);
         primaryStage.getIcons().add(new Image("png/icon.png"));
-        primaryStage.setScene(new Scene(root));
+        primaryStage.setScene(createScene(root));
         primaryStage.show();
+    }
+
+    private Scene createScene(Parent root) {
+        Scene scene = new Scene(root);
+        scene.getStylesheets().add("css/style.css");
+        return scene;
     }
 
     public void addSettingsStage() throws IOException {
@@ -68,7 +66,7 @@ public class CommandRunner extends Application {
         Parent root = loader.load();
         Stage stage = new Stage();
         stage.setTitle("Settings");
-        stage.setScene(new Scene(root));
+        stage.setScene(createScene(root));
         stage.show();
     }
 
