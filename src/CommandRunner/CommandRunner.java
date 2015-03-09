@@ -2,8 +2,6 @@ package CommandRunner;
 
 import CommandRunner.gui.fxml.GUIController;
 import javafx.application.Application;
-import javafx.beans.value.ChangeListener;
-import javafx.beans.value.ObservableValue;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
@@ -12,6 +10,8 @@ import javafx.stage.Stage;
 
 import java.io.IOException;
 import java.util.List;
+
+// TODO Help or hover info textbox (What is directory?)
 
 public class CommandRunner extends Application {
 
@@ -24,6 +24,7 @@ public class CommandRunner extends Application {
     private Stage primaryStage;
 
     private final Settings settings;
+    private GUIController guiController;
 
     public CommandRunner() throws Exception {
         if (instance != null) {
@@ -77,22 +78,26 @@ public class CommandRunner extends Application {
     }
 
     public void controllerLoaded(GUIController controller) {
-        controller.setCommands(loadCommands());
+        final CommandTreeNode root = loadSettings();
+        controller.setRoot(root);
+        guiController = controller;
     }
 
     public Stage getPrimaryStage() {
         return primaryStage;
     }
 
-    public void saveCommands(List<Command> commands) {
-        settings.setCommands(commands);
-        settings.setHaltOnError(false);
-        settings.save();
+    public void save(CommandTreeNode node) {
+        settings.save(node);
     }
 
-    public List<Command> loadCommands() {
+    public void save() {
+        guiController.save();
+    }
+
+    public CommandTreeNode loadSettings() {
         settings.load();
-        return settings.getCommands();
+        return settings.getRoot();
     }
 
     public Settings getSettings() {

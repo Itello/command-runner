@@ -48,11 +48,9 @@ public class CommandQueue implements CommandListener {
     }
 
     public void kill() {
-        if (status == CommandQueueStatus.Running && runningCommand != null) {
-            runningCommand.kill();
-            commands.clear();
-            setStoppedState();
-        }
+        runningCommand.kill();
+        commands.clear();
+        setStoppedState();
     }
 
     private void setStoppedState() {

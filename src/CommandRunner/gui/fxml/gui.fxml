@@ -4,6 +4,7 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
+<?import com.sun.javafx.webkit.theme.ContextMenuImpl.MenuImpl?>
 <StackPane xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="CommandRunner.gui.fxml.GUIController">
     <children>
         <GridPane alignment="center" hgap="10" vgap="10">
@@ -17,22 +18,23 @@
                 <RowConstraints maxHeight="150.0" minHeight="10.0" prefHeight="150.0" />
             </rowConstraints>
             <children>
-                <TableView fx:id="commandTable" editable="true" onKeyPressed="#tableKeyPressed" GridPane.hgrow="ALWAYS" GridPane.rowIndex="1" GridPane.vgrow="ALWAYS">
+                <TreeTableView fx:id="commandTable" editable="true" onKeyPressed="#tableKeyPressed" GridPane.hgrow="ALWAYS" GridPane.rowIndex="1" GridPane.vgrow="ALWAYS">
                     <columns>
-                        <TableColumn fx:id="commandColumn" maxWidth="5000.0" minWidth="0.0" prefWidth="450.0" text="Command" />
-                        <TableColumn fx:id="directoryColumn" maxWidth="5000.0" minWidth="0.0" prefWidth="150.0" text="Directory" />
-                        <TableColumn fx:id="commentColumn" maxWidth="5000.0" minWidth="0.0" prefWidth="120.0" text="Comment" />
-                        <TableColumn fx:id="statusColumn" maxWidth="5000.0" minWidth="0.0" prefWidth="90.0" text="status" />
+                        <TreeTableColumn fx:id="commandColumn" maxWidth="5000.0" minWidth="0.0" prefWidth="450.0" text="Command" />
+                        <TreeTableColumn fx:id="directoryColumn" maxWidth="5000.0" minWidth="0.0" prefWidth="150.0" text="Directory" />
+                        <TreeTableColumn fx:id="commentColumn" maxWidth="5000.0" minWidth="0.0" prefWidth="120.0" text="Comment" />
+                        <TreeTableColumn fx:id="statusColumn" maxWidth="5000.0" minWidth="0.0" prefWidth="90.0" text="status" />
                     </columns>
                     <contextMenu>
                         <ContextMenu>
                             <items>
-                                <MenuItem mnemonicParsing="false" onAction="#runSelected" text="run selected" />
-                                <MenuItem mnemonicParsing="false" onAction="#removeCommandTableRow" text="delete" />
+                                <MenuItem mnemonicParsing="false" onAction="#runSelected" text="Run selected" />
+                                <MenuItem mnemonicParsing="false" onAction="#addSelectedItemsToGroup" text="Create group for selected items"/>
+                                <MenuItem mnemonicParsing="false" onAction="#removeCommandTableRow" text="Delete selected items" />
                             </items>
                         </ContextMenu>
                     </contextMenu>
-                </TableView>
+                </TreeTableView>
                 <GridPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" GridPane.halignment="CENTER" GridPane.hgrow="ALWAYS" GridPane.rowIndex="2" GridPane.vgrow="ALWAYS">
                     <children>
                         <StackPane prefHeight="150.0" prefWidth="200.0" GridPane.hgrow="ALWAYS" GridPane.vgrow="ALWAYS">
@@ -72,6 +74,7 @@
                     <menus>
                         <Menu mnemonicParsing="false" text="File">
                             <items>
+                                <MenuItem mnemonicParsing="false" onAction="#addSelectedItemsToGroup" text="Create group for selected items"/>
                                 <MenuItem mnemonicParsing="false" onAction="#settings" text="Settings" />
                                 <MenuItem mnemonicParsing="false" onAction="#save" text="Save" />
                             </items>

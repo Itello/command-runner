@@ -6,8 +6,9 @@
 
 <GridPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="200.0" prefWidth="300.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="CommandRunner.gui.fxml.SettingsController">
   <columnConstraints>
-    <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
-    <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
+    <ColumnConstraints hgrow="SOMETIMES" maxWidth="226.0" minWidth="10.0" prefWidth="40.0" />
+    <ColumnConstraints hgrow="SOMETIMES" maxWidth="267.0" minWidth="10.0" prefWidth="181.0" />
+    <ColumnConstraints hgrow="SOMETIMES" maxWidth="144.0" minWidth="10.0" prefWidth="82.0" />
   </columnConstraints>
   <rowConstraints>
     <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
@@ -15,7 +16,8 @@
     <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
   </rowConstraints>
    <children>
-      <CheckBox fx:id="haltOnErrorCheckBox" alignment="CENTER_RIGHT" mnemonicParsing="false" text="Halt on error" GridPane.halignment="CENTER" GridPane.rowIndex="1" />
-      <Button mnemonicParsing="false" onAction="#save" text="Save" GridPane.columnIndex="1" GridPane.halignment="CENTER" GridPane.rowIndex="1" />
+       <CheckBox fx:id="haltOnErrorCheckBox" alignment="CENTER_RIGHT" mnemonicParsing="false" text="Halt on error" GridPane.columnIndex="1" GridPane.rowIndex="1" />
+       <CheckBox fx:id="confirmNonemptyDeleteCheckBox" mnemonicParsing="false" prefWidth="180.0" text="Confirm when deleting non-empty group" wrapText="true" GridPane.columnIndex="1" GridPane.hgrow="ALWAYS" />
+       <Button mnemonicParsing="false" onAction="#save" text="Save" GridPane.columnIndex="2" GridPane.halignment="CENTER" GridPane.rowIndex="1" />
    </children>
 </GridPane>

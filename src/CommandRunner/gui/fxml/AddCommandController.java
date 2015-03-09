@@ -23,7 +23,7 @@ public class AddCommandController implements Initializable, CommandController {
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
-
+        assert directoryTexTField != null : "fx:id=\"directoryTexTField\" was not injected: check FXML file 'addCommand.fxml'.";
     }
 
     @Override
