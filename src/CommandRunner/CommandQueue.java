@@ -1,5 +1,7 @@
 package CommandRunner;
 
+import CommandRunner.gui.CommandStatus;
+
 import java.util.*;
 
 public class CommandQueue implements CommandListener {
@@ -73,7 +75,11 @@ public class CommandQueue implements CommandListener {
     @Override
     public void commandExecuted(Command command) {
         if (status == CommandQueueStatus.Running) {
-            executeNextCommand();
+            if (command.getCommandStatus().equals(CommandStatus.FAIL) && CommandRunner.getInstance().getSettings().getHaltOnError()) {
+                setStoppedState();
+            } else {
+                executeNextCommand();
+            }
         } else if (status == CommandQueueStatus.Stopping) {
             setStoppedState();
         }

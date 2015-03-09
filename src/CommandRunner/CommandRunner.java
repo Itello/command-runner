@@ -11,6 +11,7 @@ import javafx.stage.Stage;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.Serializable;
 import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -19,26 +20,24 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 //TODO: CSS Styling
-//TODO: Halt on error setting, (enable more than commands in savefile)
-//TODO: Make kill actually kill
 
 public class CommandRunner extends Application {
 
     private static final String ADD_COMMAND_FXML = "gui/fxml/addCommand.fxml";
-    private static final String DIRECTORY_STRING = "directory";
-    private static final String COMMAND_AND_ARGUMENTS_STRING = "commandsAndArguments";
-    private static final String COMMAND_COMMENT_STRING = "commandComment";
-    private static final File SAVE_FILE = new File(System.getProperty("user.home") + System.getProperty("file.separator") + ".commandRunner");
+    private static final String SETTINGS_FXML = "gui/fxml/settings.fxml";
     private static final String PROGRAM_TITLE = "Command Runner";
 
     private static CommandRunner instance = null;
 
     private Stage primaryStage;
 
+    private final Settings settings;
+
     public CommandRunner() throws Exception {
         if (instance != null) {
             throw new Exception("There can be only one");
         }
+        settings = new Settings();
         instance = this;
     }
 
@@ -64,6 +63,15 @@ public class CommandRunner extends Application {
         primaryStage.show();
     }
 
+    public void addSettingsStage() throws IOException {
+        FXMLLoader loader = getFXML(SETTINGS_FXML);
+        Parent root = loader.load();
+        Stage stage = new Stage();
+        stage.setTitle("Settings");
+        stage.setScene(new Scene(root));
+        stage.show();
+    }
+
     public static void main(String[] args) {
         launch(args);
     }
@@ -77,52 +85,17 @@ public class CommandRunner extends Application {
     }
 
     public void saveCommands(List<Command> commands) {
-        String content = String.join("\n", commands.stream()
-                .map(this::convertCommandToKeyValueString)
-                .collect(Collectors.toList()));
-        saveFile(content, SAVE_FILE);
-    }
-
-    private String convertCommandToKeyValueString(Command command) {
-        return DIRECTORY_STRING + "=" + command.getCommandDirectory() + ";"
-                + COMMAND_AND_ARGUMENTS_STRING + "=" + command.getCommandNameAndArguments() + ";"
-                + COMMAND_COMMENT_STRING + "=" + command.getCommandComment();
+        settings.setCommands(commands);
+        settings.setHaltOnError(false);
+        settings.save();
     }
 
     public List<Command> loadCommands() {
-        final List<Command> commands = new ArrayList<>();
-        if (SAVE_FILE.exists()) {
-            try {
-                Files.lines(SAVE_FILE.toPath()).forEach(
-                        line -> {
-                            Map<String, String> map = new HashMap<>();
-                            for (String keyValuePair : line.split(";")) {
-                                String[] keyValue = keyValuePair.split("=");
-                                String key = keyValue[0];
-                                String value = "";
-                                if (keyValue.length > 1) {
-                                    value = keyValue[1];
-                                }
-                                map.put(key, value);
-                            }
-                            commands.add(new Command(map.get(DIRECTORY_STRING), map.get(COMMAND_AND_ARGUMENTS_STRING), map.get(COMMAND_COMMENT_STRING)));
-                        }
-                );
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
-
-        return commands;
+        settings.load();
+        return settings.getCommands();
     }
 
-    private void saveFile(String content, File file) {
-        try {
-            FileWriter fileWriter = new FileWriter(file);
-            fileWriter.write(content);
-            fileWriter.close();
-        } catch (IOException ex) {
-            ex.printStackTrace();
-        }
+    public Settings getSettings() {
+        return settings;
     }
 }

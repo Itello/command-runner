@@ -12,6 +12,7 @@ import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
 import javafx.scene.Parent;
+import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.TextFieldTableCell;
 import javafx.scene.input.ClipboardContent;
@@ -20,6 +21,7 @@ import javafx.scene.input.KeyEvent;
 import javafx.scene.input.TransferMode;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.GridPane;
+import javafx.stage.Stage;
 import javafx.util.converter.DefaultStringConverter;
 
 import java.io.IOException;
@@ -329,6 +331,11 @@ public class GUIController implements Initializable, CommandQueueListener, Comma
     private void kill(ActionEvent event) {
         commandQueue.kill();
         findRowForCommand(lastCommandStarted).updateCommandStatus();
+    }
+
+    @FXML
+    private void settings(ActionEvent event) throws IOException {
+        CommandRunner.getInstance().addSettingsStage();
     }
 
     private CommandTableRow findRowForCommand(Command command) {
