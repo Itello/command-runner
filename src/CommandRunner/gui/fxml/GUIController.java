@@ -254,33 +254,31 @@ public class GUIController implements Initializable, CommandQueueListener, Comma
     private void removeCommandTableRow(Event event) {
         final ArrayList<TreeItem<CommandTableRow>> commandTableRows = new ArrayList<>(commandTable.getSelectionModel().getSelectedItems());
 
-        for (final TreeItem<CommandTableRow> item : commandTable.getSelectionModel().getSelectedItems()) {
-            if (commandTableRows.contains(item.getParent())) {
-                commandTableRows.remove(item);
-            }
-        }
+        commandTable.getSelectionModel().getSelectedItems().stream()
+                .filter(item -> commandTableRows.contains(item.getParent()))
+                .forEach(commandTableRows::remove);
 
         for (final TreeItem<CommandTableRow> item : commandTableRows) {
             final CommandTableRow row = item.getValue();
             if (row instanceof CommandTableGroupRow
                     && CommandRunner.getInstance().getSettings().getConfirmNonemptyDelete()
                     && !item.getChildren().isEmpty()) {
-                    final Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
-                    alert.setTitle("Delete non-empty group \"" + row.commandNameAndArgumentsProperty().get() + "\"?");
-                    alert.setHeaderText(row.commandNameAndArgumentsProperty().get() + " has children.");
-                    alert.setContentText("All the children will be deleted as well as the group. Are you sure you want to delete them?");
+                final Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+                alert.setTitle("Delete non-empty group \"" + row.commandNameAndArgumentsProperty().get() + "\"?");
+                alert.setHeaderText(row.commandNameAndArgumentsProperty().get() + " has children.");
+                alert.setContentText("All the children will be deleted as well as the group. Are you sure you want to delete them?");
 
-                    final ButtonType buttonTypeOK = new ButtonType("OK");
-                    final ButtonType buttonTypeCancel = new ButtonType("Cancel", ButtonBar.ButtonData.CANCEL_CLOSE);
+                final ButtonType buttonTypeOK = new ButtonType("OK");
+                final ButtonType buttonTypeCancel = new ButtonType("Cancel", ButtonBar.ButtonData.CANCEL_CLOSE);
 
-                    alert.getButtonTypes().setAll(buttonTypeOK, buttonTypeCancel);
+                alert.getButtonTypes().setAll(buttonTypeOK, buttonTypeCancel);
 
-                    final Optional<ButtonType> result = alert.showAndWait();
-                    if (result.get() == buttonTypeOK) {
-                        removeCommandTableItem(item);
-                    } else {
-                        return;
-                    }
+                final Optional<ButtonType> result = alert.showAndWait();
+                if (result.get() == buttonTypeOK) {
+                    removeCommandTableItem(item);
+                } else {
+                    return;
+                }
             } else {
                 removeCommandTableItem(item);
             }

@@ -1,93 +1,111 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import java.lang.*?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
-
-<?import com.sun.javafx.webkit.theme.ContextMenuImpl.MenuImpl?>
-<StackPane xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="CommandRunner.gui.fxml.GUIController">
+<StackPane xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1"
+           fx:controller="CommandRunner.gui.fxml.GUIController">
     <children>
         <GridPane alignment="center" hgap="10" vgap="10">
             <columnConstraints>
-                <ColumnConstraints />
+                <ColumnConstraints/>
             </columnConstraints>
             <rowConstraints>
-                <RowConstraints maxHeight="30.0" minHeight="30.0" prefHeight="30.0" />
-                <RowConstraints maxHeight="500.0" minHeight="208.0" prefHeight="350.0" />
-                <RowConstraints maxHeight="120.0" minHeight="0.0" prefHeight="93.0" />
-                <RowConstraints maxHeight="150.0" minHeight="10.0" prefHeight="150.0" />
+                <RowConstraints maxHeight="30.0" minHeight="30.0" prefHeight="30.0"/>
+                <RowConstraints maxHeight="500.0" minHeight="208.0" prefHeight="350.0"/>
+                <RowConstraints maxHeight="120.0" minHeight="0.0" prefHeight="93.0"/>
+                <RowConstraints maxHeight="150.0" minHeight="10.0" prefHeight="150.0"/>
             </rowConstraints>
             <children>
-                <TreeTableView fx:id="commandTable" editable="true" onKeyPressed="#tableKeyPressed" GridPane.hgrow="ALWAYS" GridPane.rowIndex="1" GridPane.vgrow="ALWAYS">
+                <TreeTableView fx:id="commandTable" editable="true" onKeyPressed="#tableKeyPressed"
+                               GridPane.hgrow="ALWAYS" GridPane.rowIndex="1" GridPane.vgrow="ALWAYS">
                     <columns>
-                        <TreeTableColumn fx:id="commandColumn" maxWidth="5000.0" minWidth="0.0" prefWidth="450.0" text="Command" />
-                        <TreeTableColumn fx:id="directoryColumn" maxWidth="5000.0" minWidth="0.0" prefWidth="150.0" text="Directory" />
-                        <TreeTableColumn fx:id="commentColumn" maxWidth="5000.0" minWidth="0.0" prefWidth="120.0" text="Comment" />
-                        <TreeTableColumn fx:id="statusColumn" maxWidth="5000.0" minWidth="0.0" prefWidth="90.0" text="status" />
+                        <TreeTableColumn fx:id="commandColumn" maxWidth="5000.0" minWidth="0.0" prefWidth="450.0"
+                                         text="Command"/>
+                        <TreeTableColumn fx:id="directoryColumn" maxWidth="5000.0" minWidth="0.0" prefWidth="150.0"
+                                         text="Directory"/>
+                        <TreeTableColumn fx:id="commentColumn" maxWidth="5000.0" minWidth="0.0" prefWidth="120.0"
+                                         text="Comment"/>
+                        <TreeTableColumn fx:id="statusColumn" maxWidth="5000.0" minWidth="0.0" prefWidth="90.0"
+                                         text="status"/>
                     </columns>
                     <contextMenu>
                         <ContextMenu>
                             <items>
-                                <MenuItem mnemonicParsing="false" onAction="#runSelected" text="Run selected" />
-                                <MenuItem mnemonicParsing="false" onAction="#addSelectedItemsToGroup" text="Create group for selected items"/>
-                                <MenuItem mnemonicParsing="false" onAction="#removeCommandTableRow" text="Delete selected items" />
+                                <MenuItem mnemonicParsing="false" onAction="#runSelected" text="Run selected"/>
+                                <MenuItem mnemonicParsing="false" onAction="#addSelectedItemsToGroup"
+                                          text="Create group for selected items"/>
+                                <MenuItem mnemonicParsing="false" onAction="#removeCommandTableRow"
+                                          text="Delete selected items"/>
                             </items>
                         </ContextMenu>
                     </contextMenu>
                 </TreeTableView>
-                <GridPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" GridPane.halignment="CENTER" GridPane.hgrow="ALWAYS" GridPane.rowIndex="2" GridPane.vgrow="ALWAYS">
+                <GridPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity"
+                          GridPane.halignment="CENTER" GridPane.hgrow="ALWAYS" GridPane.rowIndex="2"
+                          GridPane.vgrow="ALWAYS">
                     <children>
                         <StackPane prefHeight="150.0" prefWidth="200.0" GridPane.hgrow="ALWAYS" GridPane.vgrow="ALWAYS">
                             <children>
-                                <FlowPane fx:id="addCommandPane" />
+                                <FlowPane fx:id="addCommandPane"/>
                                 <GridPane fx:id="progressPane">
                                     <columnConstraints>
-                                        <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
-                                        <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
-                                        <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
+                                        <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0"/>
+                                        <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0"/>
+                                        <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0"/>
                                     </columnConstraints>
                                     <rowConstraints>
-                                        <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
-                                        <RowConstraints minHeight="10.0" prefHeight="30.0" />
-                                        <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                                        <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES"/>
+                                        <RowConstraints minHeight="10.0" prefHeight="30.0"/>
+                                        <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES"/>
                                     </rowConstraints>
                                     <children>
-                                        <ProgressBar fx:id="progressBar" prefHeight="18.0" prefWidth="421.0" progress="0.0" GridPane.columnSpan="3" GridPane.halignment="CENTER" GridPane.rowIndex="1" />
-                                        <Label fx:id="commandsRunningLabel" alignment="CENTER" contentDisplay="TOP" prefHeight="17.0" prefWidth="210.0" text="Running commands" GridPane.columnIndex="1" />
-                                        <Button mnemonicParsing="false" onAction="#kill" text="Kill" GridPane.columnIndex="1" GridPane.halignment="RIGHT" GridPane.rowIndex="2" />
-                                        <Button mnemonicParsing="false" onAction="#stop" text="Stop" GridPane.columnIndex="1" GridPane.rowIndex="2" />
+                                        <ProgressBar fx:id="progressBar" prefHeight="18.0" prefWidth="421.0"
+                                                     progress="0.0" GridPane.columnSpan="3" GridPane.halignment="CENTER"
+                                                     GridPane.rowIndex="1"/>
+                                        <Label fx:id="commandsRunningLabel" alignment="CENTER" contentDisplay="TOP"
+                                               prefHeight="17.0" prefWidth="210.0" text="Running commands"
+                                               GridPane.columnIndex="1"/>
+                                        <Button mnemonicParsing="false" onAction="#kill" text="Kill"
+                                                GridPane.columnIndex="1" GridPane.halignment="RIGHT"
+                                                GridPane.rowIndex="2"/>
+                                        <Button mnemonicParsing="false" onAction="#stop" text="Stop"
+                                                GridPane.columnIndex="1" GridPane.rowIndex="2"/>
                                     </children>
                                 </GridPane>
                             </children>
                         </StackPane>
-                        <Button fx:id="addButton" mnemonicParsing="false" onAction="#addCommandTableRow" text="Add" GridPane.columnIndex="1" GridPane.halignment="CENTER" />
+                        <Button fx:id="addButton" mnemonicParsing="false" onAction="#addCommandTableRow" text="Add"
+                                GridPane.columnIndex="1" GridPane.halignment="CENTER"/>
                     </children>
                     <columnConstraints>
-                        <ColumnConstraints hgrow="SOMETIMES" maxWidth="543.0" minWidth="10.0" prefWidth="535.0" />
-                        <ColumnConstraints hgrow="SOMETIMES" maxWidth="256.0" minWidth="0.0" prefWidth="45.0" />
+                        <ColumnConstraints hgrow="SOMETIMES" maxWidth="543.0" minWidth="10.0" prefWidth="535.0"/>
+                        <ColumnConstraints hgrow="SOMETIMES" maxWidth="256.0" minWidth="0.0" prefWidth="45.0"/>
                     </columnConstraints>
                     <rowConstraints>
-                        <RowConstraints maxHeight="1.7976931348623157E308" minHeight="10.0" prefHeight="37.0" vgrow="SOMETIMES" />
+                        <RowConstraints maxHeight="1.7976931348623157E308" minHeight="10.0" prefHeight="37.0"
+                                        vgrow="SOMETIMES"/>
                     </rowConstraints>
                 </GridPane>
-                <MenuBar fx:id="menuBar" prefHeight="24.0" prefWidth="800.0" GridPane.hgrow="ALWAYS" GridPane.vgrow="NEVER">
+                <MenuBar fx:id="menuBar" prefHeight="24.0" prefWidth="800.0" GridPane.hgrow="ALWAYS"
+                         GridPane.vgrow="NEVER">
                     <menus>
                         <Menu mnemonicParsing="false" text="File">
                             <items>
-                                <MenuItem mnemonicParsing="false" onAction="#addSelectedItemsToGroup" text="Create group for selected items"/>
-                                <MenuItem mnemonicParsing="false" onAction="#settings" text="Settings" />
-                                <MenuItem mnemonicParsing="false" onAction="#save" text="Save" />
+                                <MenuItem mnemonicParsing="false" onAction="#addSelectedItemsToGroup"
+                                          text="Create group for selected items"/>
+                                <MenuItem mnemonicParsing="false" onAction="#settings" text="Settings"/>
+                                <MenuItem mnemonicParsing="false" onAction="#save" text="Save"/>
                             </items>
                         </Menu>
                         <Menu mnemonicParsing="false" text="Run">
                             <items>
-                                <MenuItem mnemonicParsing="false" onAction="#runSelected" text="Run selected" />
-                                <MenuItem mnemonicParsing="false" onAction="#runAll" text="Run all" />
+                                <MenuItem mnemonicParsing="false" onAction="#runSelected" text="Run selected"/>
                             </items>
                         </Menu>
                     </menus>
                 </MenuBar>
-                <TextArea fx:id="commandOutputArea" editable="false" minWidth="0.0" text="Program started" GridPane.rowIndex="3" />
+                <TextArea fx:id="commandOutputArea" editable="false" minWidth="0.0" text="Program started"
+                          GridPane.rowIndex="3"/>
             </children>
         </GridPane>
     </children>

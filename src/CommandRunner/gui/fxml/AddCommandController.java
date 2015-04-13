@@ -7,6 +7,7 @@ import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.TextField;
 import javafx.stage.DirectoryChooser;
+import javafx.stage.FileChooser;
 
 import java.io.File;
 import java.net.URL;
@@ -39,12 +40,24 @@ public class AddCommandController implements Initializable, CommandController {
     @FXML
     private void browseForDirectory(ActionEvent event) {
         DirectoryChooser fileChooser = new DirectoryChooser();
-        fileChooser.setTitle("Command directory or command 'start in' directory");
+        fileChooser.setTitle("'start in' or 'run from' directory");
 
         File directory = fileChooser.showDialog(CommandRunner.getInstance().getPrimaryStage());
 
         if (directory != null && directory.exists()) {
             directoryTexTField.setText(directory.getAbsolutePath());
+        }
+    }
+
+    @FXML
+    private void browseForCommand(ActionEvent event) {
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle("Command path");
+
+        File file = fileChooser.showOpenDialog(CommandRunner.getInstance().getPrimaryStage());
+
+        if (file != null && file.exists()) {
+            nameAndArgumentsTextField.setText(file.getAbsolutePath());
         }
     }
 }
