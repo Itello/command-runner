@@ -1,17 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import java.lang.*?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.text.*?>
 
 <GridPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="100.0" prefWidth="535.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="CommandRunner.gui.fxml.AddCommandController">
    <children>
-      <Label prefHeight="17.0" text="Command:" GridPane.halignment="RIGHT" GridPane.rowIndex="2" />
-      <TextField fx:id="directoryTexTField" GridPane.columnIndex="2" GridPane.rowIndex="1" />
-      <Label text="Directory:" GridPane.halignment="RIGHT" GridPane.rowIndex="1" />
-      <TextField fx:id="nameAndArgumentsTextField" prefHeight="25.0" prefWidth="171.0" text="" GridPane.columnIndex="2" GridPane.rowIndex="2" />
-      <Button mnemonicParsing="false" onAction="#browseForDirectory" text="..." GridPane.columnIndex="3" GridPane.halignment="CENTER" GridPane.rowIndex="1" />
-      <Button mnemonicParsing="false" onAction="#browseForCommand" text="..." GridPane.columnIndex="3" GridPane.halignment="CENTER" GridPane.rowIndex="2" />
+      <Label prefHeight="17.0" text="Command:" GridPane.halignment="RIGHT" GridPane.rowIndex="1" />
+      <TextField fx:id="directoryTexTField" GridPane.columnIndex="2" GridPane.rowIndex="2" />
+      <Label text="Directory:" GridPane.halignment="RIGHT" GridPane.rowIndex="2" />
+      <TextField fx:id="nameAndArgumentsTextField" prefHeight="25.0" prefWidth="171.0" text="" GridPane.columnIndex="2" GridPane.rowIndex="1" />
+      <Button mnemonicParsing="false" onAction="#browseForDirectory" text="..." GridPane.columnIndex="3" GridPane.halignment="CENTER" GridPane.rowIndex="2" />
+      <Button mnemonicParsing="false" onAction="#browseForCommand" text="..." GridPane.columnIndex="3" GridPane.halignment="CENTER" GridPane.rowIndex="1" />
       <Label alignment="CENTER" prefHeight="19.0" prefWidth="580.0" text="Add command" GridPane.columnSpan="6">
          <font>
             <Font name="System Bold" size="13.0" />

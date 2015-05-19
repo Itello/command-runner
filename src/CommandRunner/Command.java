@@ -27,6 +27,10 @@ public class Command implements Serializable {
         commandListeners = new ArrayList<>();
     }
 
+    public Command copy() {
+        return new Command(commandDirectory, commandNameAndArguments, commandComment);
+    }
+
     public String getCommandComment() {
         return commandComment;
     }

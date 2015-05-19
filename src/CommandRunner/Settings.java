@@ -1,5 +1,9 @@
 package CommandRunner;
 
+import CommandRunner.gui.CommandTableCommandRow;
+import CommandRunner.gui.CommandTableGroupRow;
+import CommandRunner.gui.CommandTableRow;
+import javafx.scene.control.TreeItem;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -30,7 +34,7 @@ public class Settings {
     private static final String CONFIRM_NONEMPTY_DELETE = "confirmNonemptyDelete";
     private static final String SAVE_ON_EXIT = "saveOnExit";
 
-    private CommandTreeNode root = null;
+    private TreeItem<CommandTableRow> root = null;
     private boolean haltOnError = true;
     private boolean confirmNonemptyDelete = true;
     private SaveOnExit saveOnExit = SaveOnExit.ASK;
@@ -39,13 +43,11 @@ public class Settings {
 
     }
 
-    public void save() {
-        load(true);
-
+    public void saveSettingsButKeepCommands() {
         save(root);
     }
 
-    public void save(CommandTreeNode root) {
+    public void save(TreeItem<CommandTableRow> root) {
         this.root = root;
 
         try {
@@ -66,21 +68,20 @@ public class Settings {
         }
     }
 
-    private void appendNodeHierarchyToJSON(CommandTreeNode node, JSONObject object) throws JSONException {
-        if (node.hasCommand()) {
-            Command command = node.getCommand();
+    private void appendNodeHierarchyToJSON(TreeItem<CommandTableRow> node, JSONObject object) throws JSONException {
+        final CommandTableRow commandTableRow = node.getValue();
+
+        if (commandTableRow instanceof CommandTableCommandRow) {
+            Command command = ((CommandTableCommandRow) commandTableRow).getCommand();
             JSONObject commandObject = new JSONObject();
             commandObject.put(DIRECTORY_STRING, command.getCommandDirectory());
             commandObject.put(COMMAND_AND_ARGUMENTS_STRING, command.getCommandNameAndArguments());
             commandObject.put(COMMAND_COMMENT_STRING, command.getCommandComment());
             object.put(COMMAND, commandObject);
         } else {
-            object.put(NAME, node.getName());
-        }
-
-        if (node.hasChildren()) {
+            object.put(NAME, commandTableRow.commandNameAndArgumentsProperty());
             JSONArray array = new JSONArray();
-            for (CommandTreeNode child : node.getChildren()) {
+            for (TreeItem<CommandTableRow> child : node.getChildren()) {
                 JSONObject childJSON = new JSONObject();
                 appendNodeHierarchyToJSON(child, childJSON);
                 array.put(childJSON);
@@ -89,29 +90,30 @@ public class Settings {
         }
     }
 
-    private CommandTreeNode createNode(JSONObject object) throws JSONException {
-        Command command = null;
+    private TreeItem<CommandTableRow> createNode(JSONObject object) throws JSONException {
         JSONArray jsonChildren = object.has(CHILDREN) ? (JSONArray) object.get(CHILDREN) : null;
         JSONObject jsonCommand = object.has(COMMAND) ? (JSONObject) object.get(COMMAND) : null;
-        String name = null;
+
+        final CommandTableRow commandTableRow;
 
         if (jsonCommand != null) {
             final String directory = (String) jsonCommand.get(DIRECTORY_STRING);
             final String comment = (String) jsonCommand.get(COMMAND_COMMENT_STRING);
             final String commandNameAndArguments = (String) jsonCommand.get(COMMAND_AND_ARGUMENTS_STRING);
 
-            command = new Command(directory, commandNameAndArguments, comment);
+            commandTableRow = new CommandTableCommandRow(new Command(directory, commandNameAndArguments, comment));
         } else {
-            name = (String) object.get(NAME);
+            commandTableRow = new CommandTableGroupRow((String) object.get(NAME));
         }
 
-        CommandTreeNode node = new CommandTreeNode(name, command);
+
+        TreeItem<CommandTableRow> node = new TreeItem<>(commandTableRow);
 
         if (jsonChildren != null) {
             for (int i = 0; i < jsonChildren.length(); i++) {
                 JSONObject jsonChild = jsonChildren.getJSONObject(i);
-                CommandTreeNode childNode = createNode(jsonChild);
-                node.addChild(childNode);
+                TreeItem<CommandTableRow> childNode = createNode(jsonChild);
+                node.getChildren().add(childNode);
             }
         }
 
@@ -132,7 +134,7 @@ public class Settings {
                 }
                 final JSONObject settingsObject = new JSONObject(fileContents.toString());
                 setRoot(createNode(settingsObject.getJSONObject(COMMANDS)));
-                if (! onlyCommands) {
+                if (!onlyCommands) {
                     haltOnError = settingsObject.getBoolean(HALT_ON_ERROR);
                     confirmNonemptyDelete = settingsObject.getBoolean(CONFIRM_NONEMPTY_DELETE);
                     saveOnExit = SaveOnExit.valueOf(settingsObject.getString(SAVE_ON_EXIT));
@@ -173,11 +175,11 @@ public class Settings {
         this.saveOnExit = saveOnExit;
     }
 
-    private void setRoot(CommandTreeNode root) {
+    private void setRoot(TreeItem<CommandTableRow> root) {
         this.root = root;
     }
 
-    public CommandTreeNode getRoot() {
+    public TreeItem<CommandTableRow> getRoot() {
         return root;
     }
 }

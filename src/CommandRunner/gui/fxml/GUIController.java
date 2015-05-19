@@ -183,21 +183,10 @@ public class GUIController implements Initializable, CommandQueueListener, Comma
 
         if (moveIntoIfGroup && itemToDragTo.getValue() instanceof CommandTableGroupRow) {
             parentToDragTo = itemToDragTo;
-            indexOfItemToDragTo = 0;
         } else {
             parentToDragTo = itemToDragTo.getParent();
             if (parentToDragTo == null) {
                 return;
-            }
-
-            indexOfItemToDragTo = parentToDragTo.getChildren().indexOf(itemToDragTo);
-
-            while (indexOfItemToDragTo > parentToDragTo.getChildren().size()) {
-                indexOfItemToDragTo--;
-            }
-
-            if (indexOfItemToDragTo < 0) {
-                indexOfItemToDragTo = 0;
             }
         }
 
@@ -210,12 +199,22 @@ public class GUIController implements Initializable, CommandQueueListener, Comma
         } while ((node = node.getParent()) != null);
 
 
+        indexOfItemToDragTo = parentToDragTo.getChildren().indexOf(itemToDragTo);
+
         final List<TreeItem<CommandTableRow>> rowsToCopyOrMove;
         if (copy) {
             rowsToCopyOrMove = deepCopyRows(dragRows);
         } else {
             rowsToCopyOrMove = dragRows;
-            dragRows.forEach(row -> row.getParent().getChildren().remove(row));
+            rowsToCopyOrMove.forEach(row -> row.getParent().getChildren().remove(row));
+        }
+
+        while (indexOfItemToDragTo > parentToDragTo.getChildren().size()) {
+            indexOfItemToDragTo--;
+        }
+
+        if (indexOfItemToDragTo < 0) {
+            indexOfItemToDragTo = 0;
         }
 
         parentToDragTo.getChildren().addAll(indexOfItemToDragTo, rowsToCopyOrMove);
@@ -230,30 +229,9 @@ public class GUIController implements Initializable, CommandQueueListener, Comma
     }
 
     private List<TreeItem<CommandTableRow>> deepCopyRows(List<TreeItem<CommandTableRow>> dragRows) {
-        List<TreeItem<CommandTableRow>> rows = new ArrayList<>();
-
-        for (final TreeItem<CommandTableRow> dragRow : dragRows) {
-            CommandTableRow row = dragRow.getValue();
-            final CommandTableRow createdRow;
-            if (row instanceof CommandTableCommandRow) {
-                createdRow = new CommandTableCommandRow(((CommandTableCommandRow) row).getCommand());
-            } else if (row instanceof CommandTableGroupRow) {
-                createdRow = new CommandTableGroupRow(row.commandNameAndArgumentsProperty().getValue());
-            } else {
-                throw new UnsupportedOperationException("invalid command row");
-            }
-
-            TreeItem<CommandTableRow> treeItem = new TreeItem<>(createdRow);
-
-            if (createdRow instanceof CommandTableGroupRow) {
-                treeItem.setGraphic(new ImageView(folderIcon));
-            }
-
-            treeItem.getChildren().setAll(deepCopyRows(dragRow.getChildren()));
-            rows.add(treeItem);
-        }
-
-        return rows;
+        return dragRows.stream()
+                .map(this::copyTreeItem)
+                .collect(Collectors.toList());
     }
 
     private void setToolTipLabel(TreeTableColumn<CommandTableRow, String> column, String tooltip) {
@@ -293,7 +271,7 @@ public class GUIController implements Initializable, CommandQueueListener, Comma
 
         final TreeItem<CommandTableRow> item = selectedItems.get(0);
         final TreeItem<CommandTableRow> parent = item.getParent();
-        final TreeItem<CommandTableRow> group = createTreeItem(new CommandTreeNode(name, null));
+        final TreeItem<CommandTableRow> group = new TreeItem<>(new CommandTableGroupRow(name));
 
         int moveToIndex = parent.getChildren().indexOf(item);
 
@@ -406,8 +384,8 @@ public class GUIController implements Initializable, CommandQueueListener, Comma
                         .map(CommandTableCommandRow::getCommand)
                         .collect(Collectors.toList())
         );
-        commandTable.getSelectionModel().clearSelection();
 
+        commandTable.getSelectionModel().clearSelection();
         commandQueue.start();
     }
 
@@ -555,45 +533,17 @@ public class GUIController implements Initializable, CommandQueueListener, Comma
         return items;
     }
 
-    private CommandTreeNode getRootCommandTreeNode() {
-        TreeItem<CommandTableRow> item = commandTable.getRoot();
-
-        Deque<TreeItem<CommandTableRow>> rows = new ArrayDeque<>();
-        Deque<CommandTreeNode> nodes = new ArrayDeque<>();
-        rows.push(item);
-        final CommandTreeNode rootNode = new CommandTreeNode(item.getValue().commandNameAndArgumentsProperty().getValue(), null);
-        nodes.push(rootNode);
-        CommandTreeNode node;
-
-        while (!rows.isEmpty()) {
-            item = rows.removeFirst();
-            node = nodes.removeFirst();
-            final CommandTreeNode parentNode = node;
-            item.getChildren().forEach(child -> {
-
-                Command command = null;
-                CommandTableRow row = child.getValue();
-                if (row instanceof CommandTableCommandRow) {
-                    command = ((CommandTableCommandRow) row).getCommand();
-                }
-
-                final CommandTreeNode childNode = new CommandTreeNode(row.commandNameAndArgumentsProperty().getValue(), command);
-                rows.addLast(child);
-                nodes.addLast(childNode);
-                parentNode.addChild(childNode);
-            });
-        }
-
-        return rootNode;
+    private TreeItem<CommandTableRow> getRootCommandTreeNode() {
+        return commandTable.getRoot();
     }
 
-    public void setRoot(CommandTreeNode commandTreeNode) {
-        CommandTreeNode commandTreeNode1 = commandTreeNode;
+    public void setRoot(TreeItem<CommandTableRow> commandTreeNode) {
+        TreeItem<CommandTableRow> commandTreeNode1 = commandTreeNode;
         if (commandTreeNode1 == null) {
-            commandTreeNode1 = new CommandTreeNode("root", null);
+            commandTreeNode1 = new TreeItem<>(new CommandTableGroupRow("root"));
         }
 
-        commandTable.setRoot(createTreeItem(commandTreeNode1));
+        commandTable.setRoot(copyTreeItem(commandTreeNode1));
         commandTable.getRoot().setExpanded(true);
         commandTable.setShowRoot(false);
 
@@ -618,26 +568,29 @@ public class GUIController implements Initializable, CommandQueueListener, Comma
         }
     }
 
-    private TreeItem<CommandTableRow> createTreeItem(CommandTreeNode node) {
-        final CommandTableRow row;
+    private TreeItem<CommandTableRow> copyTreeItem(TreeItem<CommandTableRow> treeItem) {
+        final CommandTableRow row = treeItem.getValue();
+        final CommandTableRow createdRow;
 
-        if (node.hasCommand()) {
-            row = new CommandTableCommandRow(node.getCommand());
+        if (row instanceof CommandTableCommandRow) {
+            createdRow = new CommandTableCommandRow(((CommandTableCommandRow) row).getCommand().copy());
+        } else if (row instanceof CommandTableGroupRow) {
+            createdRow = new CommandTableGroupRow(row.commandNameAndArgumentsProperty().getValue());
         } else {
-            row = new CommandTableGroupRow(node.getName());
+            throw new UnsupportedOperationException("invalid command row");
         }
 
-        TreeItem<CommandTableRow> item = new TreeItem<>(row);
+        TreeItem<CommandTableRow> createdTreeItem = new TreeItem<>(createdRow);
 
-        if (!node.hasCommand()) {
-            item.setGraphic(new ImageView(folderIcon));
+        if (createdRow instanceof CommandTableGroupRow) {
+            createdTreeItem.setGraphic(new ImageView(folderIcon));
         }
 
-        if (node.hasChildren()) {
-            node.getChildren().forEach(child -> item.getChildren().add(createTreeItem(child)));
+        if (! treeItem.getChildren().isEmpty()) {
+            treeItem.getChildren().forEach(child -> createdTreeItem.getChildren().add(copyTreeItem(child)));
         }
 
-        return item;
+        return createdTreeItem;
     }
 
     public boolean hasChangesSinceLastSave() {

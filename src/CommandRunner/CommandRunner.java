@@ -1,5 +1,6 @@
 package CommandRunner;
 
+import CommandRunner.gui.CommandTableRow;
 import CommandRunner.gui.fxml.GUIController;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
@@ -8,6 +9,7 @@ import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonBar;
 import javafx.scene.control.ButtonType;
+import javafx.scene.control.TreeItem;
 import javafx.scene.image.Image;
 import javafx.stage.Stage;
 
@@ -56,9 +58,7 @@ public class CommandRunner extends Application {
         primaryStage.getIcons().add(new Image("png/icon.png"));
         primaryStage.setScene(createScene(root));
         primaryStage.show();
-        primaryStage.setOnCloseRequest(event -> {
-            onClose();
-        });
+        primaryStage.setOnCloseRequest(event -> onClose());
     }
 
     private void onClose() {
@@ -79,7 +79,7 @@ public class CommandRunner extends Application {
         final Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
         alert.setTitle("Save changes?");
         alert.setHeaderText("You are about to exit the program with unsaved changes.");
-        alert.setContentText("If you do not save, all changes since the last save will be lost.");
+        alert.setContentText("If you do not saveSettingsButKeepCommands, all changes since the last saveSettingsButKeepCommands will be lost.");
 
         final ButtonType buttonTypeOK = new ButtonType("Save");
         final ButtonType buttonTypeCancel = new ButtonType("Exit without saving", ButtonBar.ButtonData.CANCEL_CLOSE);
@@ -113,7 +113,7 @@ public class CommandRunner extends Application {
     }
 
     public void controllerLoaded(GUIController controller) {
-        final CommandTreeNode root = loadSettings();
+        final TreeItem<CommandTableRow> root = loadSettings();
         controller.setRoot(root);
         guiController = controller;
     }
@@ -122,7 +122,7 @@ public class CommandRunner extends Application {
         return primaryStage;
     }
 
-    public void save(CommandTreeNode node) {
+    public void save(TreeItem<CommandTableRow> node) {
         settings.save(node);
     }
 
@@ -130,7 +130,7 @@ public class CommandRunner extends Application {
         guiController.save();
     }
 
-    public CommandTreeNode loadSettings() {
+    public TreeItem<CommandTableRow> loadSettings() {
         settings.load();
         return settings.getRoot();
     }
