@@ -2,6 +2,7 @@ package CommandRunner.gui.fxml;
 
 import CommandRunner.*;
 import CommandRunner.gui.*;
+import javafx.application.Platform;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.event.Event;
@@ -74,6 +75,8 @@ public class GUIController implements Initializable, CommandQueueListener, Comma
     private int dragStartIndex;
 
     private final Image folderIcon = new Image("png/folder.png");
+
+    private int changesSinceLastSave = 0;
 
     @FXML
     private Button addButton;
@@ -157,6 +160,7 @@ public class GUIController implements Initializable, CommandQueueListener, Comma
 
     private TextFieldTreeTableCell<CommandTableRow, String> getTooltipTextFieldTreeTableCell() {
         return new TextFieldTreeTableCell<CommandTableRow, String>(new DefaultStringConverter()) {
+
             @Override
             public void updateItem(String item, boolean empty) {
                 super.updateItem(item, empty);
@@ -214,7 +218,9 @@ public class GUIController implements Initializable, CommandQueueListener, Comma
         int firstRowIndex = commandTable.getRow(dragRows.get(0));
 
         parentToDragTo.setExpanded(true);
-//        commandTable.getSelectionModel().selectRange(firstRowIndex, firstRowIndex + dragRows.size());
+        commandTable.getSelectionModel().clearSelection();
+        Platform.runLater(() -> commandTable.getSelectionModel().selectRange(firstRowIndex, firstRowIndex + dragRows.size()));
+        changesSinceLastSave++;
     }
 
     @FXML
@@ -244,10 +250,11 @@ public class GUIController implements Initializable, CommandQueueListener, Comma
             moveToIndex = 0;
         }
 
-        commandTable.getSelectionModel().clearSelection();
         parent.getChildren().add(moveToIndex, group);
+        commandTable.getSelectionModel().clearSelection();
+        Platform.runLater(() -> commandTable.edit(commandTable.getRow(group), commandColumn));
 
-        commandTable.edit(commandTable.getRow(group), commandColumn);
+        changesSinceLastSave++;
     }
 
     @FXML
@@ -289,6 +296,7 @@ public class GUIController implements Initializable, CommandQueueListener, Comma
 
     private void removeCommandTableItem(TreeItem<CommandTableRow> item) {
         item.getParent().getChildren().remove(item);
+        changesSinceLastSave++;
     }
 
     @FXML
@@ -317,6 +325,7 @@ public class GUIController implements Initializable, CommandQueueListener, Comma
                                 )
                         ))
         );
+        changesSinceLastSave++;
     }
 
     @FXML
@@ -367,28 +376,30 @@ public class GUIController implements Initializable, CommandQueueListener, Comma
             case DELETE:
                 removeCommandTableRow(event);
                 break;
-            case UP:
-                keyboardMoveSelectedRows(event, -1);
-                break;
-            case DOWN:
-                keyboardMoveSelectedRows(event, 1);
-                break;
             case ENTER:
-                if (commandTable.getEditingCell() == null) {
-                    runSelected(event);
-                    break;
-                }
+            if (commandTable.getEditingCell() == null) {
+                runSelected(event);
+                break;
+            }
+//            case UP:
+//                if (event.isAltDown()) {
+//                    keyboardMoveSelectedRows(-1);
+//                }
+//                break;
+//            case DOWN:
+//                if (event.isAltDown()) {
+//                    keyboardMoveSelectedRows(1);
+//                }
+//                break;
             default:
         }
     }
 
-    private void keyboardMoveSelectedRows(KeyEvent event, int modifier) {
-        if (event.isAltDown()) {
-            final List<TreeItem<CommandTableRow>> selected = new ArrayList<>(commandTable.getSelectionModel().getSelectedItems());
-            if (!selected.isEmpty()) {
-                dragStartIndex = commandTable.getRow(selected.get(0));
-                moveRowsToItem(commandTable.getTreeItem(dragStartIndex + modifier), new ArrayList<>(selected), false);
-            }
+    private void keyboardMoveSelectedRows(int modifier) {
+        final List<TreeItem<CommandTableRow>> selected = new ArrayList<>(commandTable.getSelectionModel().getSelectedItems());
+        if (!selected.isEmpty()) {
+            dragStartIndex = commandTable.getRow(selected.get(0));
+            moveRowsToItem(commandTable.getTreeItem(dragStartIndex + modifier), new ArrayList<>(selected), false);
         }
     }
 
@@ -441,6 +452,7 @@ public class GUIController implements Initializable, CommandQueueListener, Comma
 
     public void save() {
         CommandRunner.getInstance().save(getRootCommandTreeNode());
+        changesSinceLastSave = 0;
     }
 
     @FXML
@@ -567,5 +579,9 @@ public class GUIController implements Initializable, CommandQueueListener, Comma
         }
 
         return item;
+    }
+
+    public boolean hasChangesSinceLastSave() {
+        return changesSinceLastSave != 0;
     }
 }

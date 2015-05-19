@@ -5,10 +5,14 @@ import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.control.Alert;
+import javafx.scene.control.ButtonBar;
+import javafx.scene.control.ButtonType;
 import javafx.scene.image.Image;
 import javafx.stage.Stage;
 
 import java.io.IOException;
+import java.util.Optional;
 
 public class CommandRunner extends Application {
 
@@ -52,6 +56,40 @@ public class CommandRunner extends Application {
         primaryStage.getIcons().add(new Image("png/icon.png"));
         primaryStage.setScene(createScene(root));
         primaryStage.show();
+        primaryStage.setOnCloseRequest(event -> {
+            onClose();
+        });
+    }
+
+    private void onClose() {
+        switch (settings.getSaveOnExit()) {
+            case ASK:
+                if (guiController.hasChangesSinceLastSave()) {
+                    showAskSaveAlert();
+                }
+                break;
+            case SAVE:
+                save();
+            case FORGET:
+            default:
+        }
+    }
+
+    private void showAskSaveAlert() {
+        final Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+        alert.setTitle("Save changes?");
+        alert.setHeaderText("You are about to exit the program with unsaved changes.");
+        alert.setContentText("If you do not save, all changes since the last save will be lost.");
+
+        final ButtonType buttonTypeOK = new ButtonType("Save");
+        final ButtonType buttonTypeCancel = new ButtonType("Exit without saving", ButtonBar.ButtonData.CANCEL_CLOSE);
+
+        alert.getButtonTypes().setAll(buttonTypeOK, buttonTypeCancel);
+
+        final Optional<ButtonType> result = alert.showAndWait();
+        if (result.get() == buttonTypeOK) {
+            save();
+        }
     }
 
     private Scene createScene(Parent root) {

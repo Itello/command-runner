@@ -4,21 +4,36 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
 
 public class Settings {
 
+    public enum SaveOnExit {
+        ASK,
+        SAVE,
+        FORGET
+    }
+
     private static final String DIRECTORY_STRING = "directory";
+
+    private static final File SAVE_FILE = new File(System.getProperty("user.home") + System.getProperty("file.separator") + ".commandRunner");
     private static final String COMMAND_AND_ARGUMENTS_STRING = "commandsAndArguments";
     private static final String COMMAND_COMMENT_STRING = "commandComment";
-    private static final File SAVE_FILE = new File(System.getProperty("user.home") + System.getProperty("file.separator") + ".commandRunner");
     private static final String NAME = "name";
     private static final String CHILDREN = "children";
     private static final String COMMAND = "command";
+    private static final String COMMANDS = "commands";
+    private static final String HALT_ON_ERROR = "haltOnError";
+    private static final String CONFIRM_NONEMPTY_DELETE = "confirmNonemptyDelete";
+    private static final String SAVE_ON_EXIT = "saveOnExit";
 
     private CommandTreeNode root = null;
-    private boolean haltOnError = false;
+    private boolean haltOnError = true;
     private boolean confirmNonemptyDelete = true;
+    private SaveOnExit saveOnExit = SaveOnExit.ASK;
 
     Settings() {
 
@@ -28,20 +43,18 @@ public class Settings {
         this.root = root;
 
         try {
-            FileOutputStream fileOut = new FileOutputStream(SAVE_FILE);
-            ObjectOutputStream out = new ObjectOutputStream(fileOut);
+            JSONObject commandsObject = new JSONObject();
+            appendNodeHierarchyToJSON(root, commandsObject);
 
-            JSONObject object = new JSONObject();
+            JSONObject settingsObject = new JSONObject();
+            settingsObject.put(COMMANDS, commandsObject);
+            settingsObject.put(HALT_ON_ERROR, haltOnError);
+            settingsObject.put(CONFIRM_NONEMPTY_DELETE, confirmNonemptyDelete);
+            settingsObject.put(SAVE_ON_EXIT, saveOnExit.toString());
 
-            appendNodeHierarchyToJSON(root, object);
-
-            String content = object.toString();
-
-            out.writeObject(content);
-            out.writeObject(haltOnError);
-            out.writeObject(confirmNonemptyDelete);
-            out.close();
-            fileOut.close();
+            FileWriter fileWriter = new FileWriter(SAVE_FILE);
+            fileWriter.write(settingsObject.toString(1));
+            fileWriter.close();
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -102,17 +115,23 @@ public class Settings {
     void load() {
         if (SAVE_FILE.exists()) {
             try {
-                FileInputStream fileIn = new FileInputStream(SAVE_FILE);
-                ObjectInputStream in = new ObjectInputStream(fileIn);
-                String commandContent = (String) in.readObject();
+                final FileReader reader = new FileReader(SAVE_FILE);
+                final StringBuilder fileContents = new StringBuilder();
 
-                setRoot(createNode(new JSONObject(commandContent)));
-                haltOnError = (boolean) in.readObject();
-                confirmNonemptyDelete = (boolean) in.readObject();
+                int i;
+                while ((i = reader.read()) != -1) {
+                    char ch = (char) i;
 
-                in.close();
-                fileIn.close();
-            } catch (IOException | ClassNotFoundException | JSONException e) {
+                    fileContents.append(ch);
+                }
+                final JSONObject settingsObject = new JSONObject(fileContents.toString());
+                setRoot(createNode(settingsObject.getJSONObject(COMMANDS)));
+                haltOnError = settingsObject.getBoolean(HALT_ON_ERROR);
+                confirmNonemptyDelete = settingsObject.getBoolean(CONFIRM_NONEMPTY_DELETE);
+                saveOnExit = SaveOnExit.valueOf(settingsObject.getString(SAVE_ON_EXIT));
+
+                reader.close();
+            } catch (IOException | JSONException e) {
                 e.printStackTrace();
             }
         }
@@ -132,6 +151,14 @@ public class Settings {
 
     public boolean getConfirmNonemptyDelete() {
         return confirmNonemptyDelete;
+    }
+
+    public SaveOnExit getSaveOnExit() {
+        return saveOnExit;
+    }
+
+    public void setSaveOnExit(SaveOnExit saveOnExit) {
+        this.saveOnExit = saveOnExit;
     }
 
     private void setRoot(CommandTreeNode root) {
