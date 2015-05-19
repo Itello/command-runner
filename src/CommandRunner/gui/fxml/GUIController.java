@@ -271,7 +271,7 @@ public class GUIController implements Initializable, CommandQueueListener, Comma
 
         final TreeItem<CommandTableRow> item = selectedItems.get(0);
         final TreeItem<CommandTableRow> parent = item.getParent();
-        final TreeItem<CommandTableRow> group = new TreeItem<>(new CommandTableGroupRow(name));
+        final TreeItem<CommandTableRow> group = copyTreeItem(new TreeItem<>(new CommandTableGroupRow(name)));
 
         int moveToIndex = parent.getChildren().indexOf(item);
 
@@ -488,7 +488,7 @@ public class GUIController implements Initializable, CommandQueueListener, Comma
     }
 
     public void save() {
-        CommandRunner.getInstance().save(getRootCommandTreeNode());
+        CommandRunner.getInstance().save(getRoot());
         changesSinceLastSave = 0;
     }
 
@@ -533,7 +533,7 @@ public class GUIController implements Initializable, CommandQueueListener, Comma
         return items;
     }
 
-    private TreeItem<CommandTableRow> getRootCommandTreeNode() {
+    private TreeItem<CommandTableRow> getRoot() {
         return commandTable.getRoot();
     }
 

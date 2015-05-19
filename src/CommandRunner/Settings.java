@@ -79,7 +79,7 @@ public class Settings {
             commandObject.put(COMMAND_COMMENT_STRING, command.getCommandComment());
             object.put(COMMAND, commandObject);
         } else {
-            object.put(NAME, commandTableRow.commandNameAndArgumentsProperty());
+            object.put(NAME, commandTableRow.commandNameAndArgumentsProperty().getValue());
             JSONArray array = new JSONArray();
             for (TreeItem<CommandTableRow> child : node.getChildren()) {
                 JSONObject childJSON = new JSONObject();
@@ -105,7 +105,6 @@ public class Settings {
         } else {
             commandTableRow = new CommandTableGroupRow((String) object.get(NAME));
         }
-
 
         TreeItem<CommandTableRow> node = new TreeItem<>(commandTableRow);
 
