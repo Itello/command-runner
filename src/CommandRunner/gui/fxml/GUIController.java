@@ -108,9 +108,18 @@ public class GUIController implements Initializable, CommandQueueListener, Comma
                     // highlight drop target by changing background color:
                     cell.setOnDragEntered(event -> cell.setStyle("-fx-background-color: gold;"));
                     cell.setOnDragExited(event -> cell.setStyle(""));
-                    cell.setOnDragOver(event -> event.acceptTransferModes(TransferMode.MOVE));
+                    cell.setOnDragOver(event -> event.acceptTransferModes(TransferMode.MOVE, TransferMode.COPY));
 
                     cell.setOnDragDropped(event -> {
+                        final boolean copying;
+                        if (event.getAcceptedTransferMode().equals(TransferMode.COPY)) {
+                            copying = true;
+                        } else if (event.getAcceptedTransferMode().equals(TransferMode.MOVE)) {
+                            copying = false;
+                        } else {
+                            return;
+                        }
+
                         if (cell.getIndex() == dragStartIndex) {
                             return;
                         }
@@ -120,7 +129,11 @@ public class GUIController implements Initializable, CommandQueueListener, Comma
                             return;
                         }
 
-                        moveRowsToItem(cell.getTreeTableRow().getTreeItem(), dragRows, true);
+                        if (copying) {
+                            copyRowsToItem(cell.getTreeTableRow().getTreeItem());
+                        } else {
+                            moveRowsToItem(cell.getTreeTableRow().getTreeItem(), dragRows, true);
+                        }
 
                         dragRows = null;
                         event.consume();
@@ -151,35 +164,20 @@ public class GUIController implements Initializable, CommandQueueListener, Comma
         CommandRunner.getInstance().controllerLoaded(this);
     }
 
-    private void setToolTipLabel(TreeTableColumn<CommandTableRow, String> column, String tooltip) {
-        Label directoryLabel = new Label(column.getText());
-        directoryLabel.setTooltip(new Tooltip(tooltip));
-        column.setText("");
-        column.setGraphic(directoryLabel);
-    }
-
-    private TextFieldTreeTableCell<CommandTableRow, String> getTooltipTextFieldTreeTableCell() {
-        return new TextFieldTreeTableCell<CommandTableRow, String>(new DefaultStringConverter()) {
-
-            @Override
-            public void updateItem(String item, boolean empty) {
-                super.updateItem(item, empty);
-                if (empty) {
-                    setText(null);
-                    setTooltip(null);
-                } else {
-                    setText(item);
-                    setTooltip(new Tooltip(item));
-                }
-            }
-        };
+    private void copyRowsToItem(TreeItem<CommandTableRow> itemToDragTo) {
+        moveRowsToItem(itemToDragTo, dragRows, true, true);
     }
 
     private void moveRowsToItem(TreeItem<CommandTableRow> itemToDragTo, List<TreeItem<CommandTableRow>> dragRows, boolean moveIntoIfGroup) {
+        moveRowsToItem(itemToDragTo, dragRows, moveIntoIfGroup, false);
+    }
+
+    private void moveRowsToItem(TreeItem<CommandTableRow> itemToDragTo, List<TreeItem<CommandTableRow>> dragRows, boolean moveIntoIfGroup, boolean copy) {
         if (itemToDragTo == null) {
             return;
         }
 
+        commandTable.getSelectionModel().clearSelection();
         final TreeItem<CommandTableRow> parentToDragTo;
         int indexOfItemToDragTo;
 
@@ -203,7 +201,6 @@ public class GUIController implements Initializable, CommandQueueListener, Comma
             }
         }
 
-        commandTable.getSelectionModel().clearSelection();
         TreeItem<CommandTableRow> node = parentToDragTo;
 
         do {
@@ -213,14 +210,74 @@ public class GUIController implements Initializable, CommandQueueListener, Comma
         } while ((node = node.getParent()) != null);
 
 
-        dragRows.forEach(row -> row.getParent().getChildren().remove(row));
-        parentToDragTo.getChildren().addAll(indexOfItemToDragTo, dragRows);
-        int firstRowIndex = commandTable.getRow(dragRows.get(0));
+        final List<TreeItem<CommandTableRow>> rowsToCopyOrMove;
+        if (copy) {
+            rowsToCopyOrMove = deepCopyRows(dragRows);
+        } else {
+            rowsToCopyOrMove = dragRows;
+            dragRows.forEach(row -> row.getParent().getChildren().remove(row));
+        }
 
-        parentToDragTo.setExpanded(true);
-        commandTable.getSelectionModel().clearSelection();
-        Platform.runLater(() -> commandTable.getSelectionModel().selectRange(firstRowIndex, firstRowIndex + dragRows.size()));
+        parentToDragTo.getChildren().addAll(indexOfItemToDragTo, rowsToCopyOrMove);
+
+        Platform.runLater(() -> {
+            parentToDragTo.setExpanded(true);
+            int firstRowIndex = commandTable.getRow(rowsToCopyOrMove.get(0));
+            commandTable.getSelectionModel().selectRange(firstRowIndex, firstRowIndex + dragRows.size());
+        });
+
         changesSinceLastSave++;
+    }
+
+    private List<TreeItem<CommandTableRow>> deepCopyRows(List<TreeItem<CommandTableRow>> dragRows) {
+        List<TreeItem<CommandTableRow>> rows = new ArrayList<>();
+
+        for (final TreeItem<CommandTableRow> dragRow : dragRows) {
+            CommandTableRow row = dragRow.getValue();
+            final CommandTableRow createdRow;
+            if (row instanceof CommandTableCommandRow) {
+                createdRow = new CommandTableCommandRow(((CommandTableCommandRow) row).getCommand());
+            } else if (row instanceof CommandTableGroupRow) {
+                createdRow = new CommandTableGroupRow(row.commandNameAndArgumentsProperty().getValue());
+            } else {
+                throw new UnsupportedOperationException("invalid command row");
+            }
+
+            TreeItem<CommandTableRow> treeItem = new TreeItem<>(createdRow);
+
+            if (createdRow instanceof CommandTableGroupRow) {
+                treeItem.setGraphic(new ImageView(folderIcon));
+            }
+
+            treeItem.getChildren().setAll(deepCopyRows(dragRow.getChildren()));
+            rows.add(treeItem);
+        }
+
+        return rows;
+    }
+
+    private void setToolTipLabel(TreeTableColumn<CommandTableRow, String> column, String tooltip) {
+        Label directoryLabel = new Label(column.getText());
+        directoryLabel.setTooltip(new Tooltip(tooltip));
+        column.setText("");
+        column.setGraphic(directoryLabel);
+    }
+
+    private TextFieldTreeTableCell<CommandTableRow, String> getTooltipTextFieldTreeTableCell() {
+        return new TextFieldTreeTableCell<CommandTableRow, String>(new DefaultStringConverter()) {
+
+            @Override
+            public void updateItem(String item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty) {
+                    setText(null);
+                    setTooltip(null);
+                } else {
+                    setText(item);
+                    setTooltip(new Tooltip(item));
+                }
+            }
+        };
     }
 
     @FXML
@@ -265,6 +322,8 @@ public class GUIController implements Initializable, CommandQueueListener, Comma
                 .filter(item -> commandTableRows.contains(item.getParent()))
                 .forEach(commandTableRows::remove);
 
+        commandTable.getSelectionModel().clearSelection();
+
         for (final TreeItem<CommandTableRow> item : commandTableRows) {
             final CommandTableRow row = item.getValue();
             if (row instanceof CommandTableGroupRow
@@ -291,7 +350,7 @@ public class GUIController implements Initializable, CommandQueueListener, Comma
             }
         }
 
-        commandTable.getSelectionModel().clearSelection();
+        Platform.runLater(() -> commandTable.getSelectionModel().clearSelection());
     }
 
     private void removeCommandTableItem(TreeItem<CommandTableRow> item) {
@@ -377,10 +436,10 @@ public class GUIController implements Initializable, CommandQueueListener, Comma
                 removeCommandTableRow(event);
                 break;
             case ENTER:
-            if (commandTable.getEditingCell() == null) {
-                runSelected(event);
-                break;
-            }
+                if (commandTable.getEditingCell() == null) {
+                    runSelected(event);
+                    break;
+                }
 //            case UP:
 //                if (event.isAltDown()) {
 //                    keyboardMoveSelectedRows(-1);

@@ -50,7 +50,7 @@ public class SettingsController implements Initializable {
         settings.setHaltOnError(haltOnErrorCheckBox.isSelected());
         settings.setConfirmNonemptyDelete(confirmNonemptyDeleteCheckBox.isSelected());
         settings.setSaveOnExit(getSaveOnExitFromToggleGroup());
-        CommandRunner.getInstance().save();
+        settings.save();
         Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
         stage.close();
     }

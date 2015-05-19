@@ -39,6 +39,12 @@ public class Settings {
 
     }
 
+    public void save() {
+        load(true);
+
+        save(root);
+    }
+
     public void save(CommandTreeNode root) {
         this.root = root;
 
@@ -112,7 +118,7 @@ public class Settings {
         return node;
     }
 
-    void load() {
+    private void load(boolean onlyCommands) {
         if (SAVE_FILE.exists()) {
             try {
                 final FileReader reader = new FileReader(SAVE_FILE);
@@ -126,15 +132,21 @@ public class Settings {
                 }
                 final JSONObject settingsObject = new JSONObject(fileContents.toString());
                 setRoot(createNode(settingsObject.getJSONObject(COMMANDS)));
-                haltOnError = settingsObject.getBoolean(HALT_ON_ERROR);
-                confirmNonemptyDelete = settingsObject.getBoolean(CONFIRM_NONEMPTY_DELETE);
-                saveOnExit = SaveOnExit.valueOf(settingsObject.getString(SAVE_ON_EXIT));
+                if (! onlyCommands) {
+                    haltOnError = settingsObject.getBoolean(HALT_ON_ERROR);
+                    confirmNonemptyDelete = settingsObject.getBoolean(CONFIRM_NONEMPTY_DELETE);
+                    saveOnExit = SaveOnExit.valueOf(settingsObject.getString(SAVE_ON_EXIT));
+                }
 
                 reader.close();
             } catch (IOException | JSONException e) {
                 e.printStackTrace();
             }
         }
+    }
+
+    void load() {
+        load(false);
     }
 
     public void setHaltOnError(boolean halt) {
