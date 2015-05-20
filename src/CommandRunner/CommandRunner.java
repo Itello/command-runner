@@ -12,6 +12,7 @@ import javafx.scene.control.ButtonType;
 import javafx.scene.control.TreeItem;
 import javafx.scene.image.Image;
 import javafx.stage.Stage;
+import javafx.stage.WindowEvent;
 
 import java.io.IOException;
 import java.util.Optional;
@@ -58,14 +59,14 @@ public class CommandRunner extends Application {
         primaryStage.getIcons().add(new Image("png/icon.png"));
         primaryStage.setScene(createScene(root));
         primaryStage.show();
-        primaryStage.setOnCloseRequest(event -> onClose());
+        primaryStage.setOnCloseRequest(this::onClose);
     }
 
-    private void onClose() {
+    private void onClose(WindowEvent event) {
         switch (settings.getSaveOnExit()) {
             case ASK:
                 if (guiController.hasChangesSinceLastSave()) {
-                    showAskSaveAlert();
+                    showAskSaveAlert(event);
                 }
                 break;
             case SAVE:
@@ -75,20 +76,23 @@ public class CommandRunner extends Application {
         }
     }
 
-    private void showAskSaveAlert() {
+    private void showAskSaveAlert(WindowEvent event) {
         final Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
         alert.setTitle("Save changes?");
         alert.setHeaderText("You are about to exit the program with unsaved changes.");
         alert.setContentText("If you do not saveSettingsButKeepCommands, all changes since the last saveSettingsButKeepCommands will be lost.");
 
-        final ButtonType buttonTypeOK = new ButtonType("Save");
-        final ButtonType buttonTypeCancel = new ButtonType("Exit without saving", ButtonBar.ButtonData.CANCEL_CLOSE);
+        final ButtonType buttonTypeSave = new ButtonType("Save");
+        final ButtonType buttonTypeExit = new ButtonType("Exit without saving", ButtonBar.ButtonData.CANCEL_CLOSE);
+        final ButtonType buttonTypeContinue = new ButtonType("Cancel exit", ButtonBar.ButtonData.OTHER);
 
-        alert.getButtonTypes().setAll(buttonTypeOK, buttonTypeCancel);
+        alert.getButtonTypes().setAll(buttonTypeSave, buttonTypeContinue, buttonTypeExit);
 
         final Optional<ButtonType> result = alert.showAndWait();
-        if (result.get() == buttonTypeOK) {
+        if (result.get() == buttonTypeSave) {
             save();
+        } else if (result.get() == buttonTypeContinue) {
+            event.consume();
         }
     }
 
