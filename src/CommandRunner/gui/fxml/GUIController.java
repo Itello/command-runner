@@ -447,6 +447,7 @@ public class GUIController implements Initializable, CommandQueueListener, Comma
         progressPane.setVisible(show);
         commandTable.setDisable(show);
         addButton.setDisable(show);
+        addButton.setVisible(!show);
         menuBar.setDisable(show);
     }
 
