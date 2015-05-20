@@ -95,13 +95,15 @@ public class GUIController implements Initializable, CommandQueueListener, Comma
         setToolTipLabel(directoryColumn, "Starting directory (NOT command location)");
         setToolTipLabel(commandColumn, "Command name and arguments, including path if command is not in path");
 
-        commandColumn.setOnEditCommit(event -> event.getTreeTablePosition().getTreeItem().getValue().setCommandNameAndArguments(event.getNewValue()));
         directoryColumn.setOnEditCommit(event -> event.getTreeTablePosition().getTreeItem().getValue().setCommandDirectory(event.getNewValue()));
         commentColumn.setOnEditCommit(event -> event.getTreeTablePosition().getTreeItem().getValue().setCommandComment(event.getNewValue()));
+        commandColumn.setOnEditCommit(event -> {
+            event.getTreeTablePosition().getTreeItem().getValue().setCommandNameAndArguments(event.getNewValue());
+            changesSinceLastSave++;
+        });
 
         directoryColumn.setCellFactory(param -> getTooltipTextFieldTreeTableCell());
         commentColumn.setCellFactory(param -> getTooltipTextFieldTreeTableCell());
-
         commandColumn.setCellFactory(param -> {
                     TreeTableCell<CommandTableRow, String> cell = getTooltipTextFieldTreeTableCell();
 
