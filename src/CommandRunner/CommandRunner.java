@@ -80,7 +80,7 @@ public class CommandRunner extends Application {
         final Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
         alert.setTitle("Save changes?");
         alert.setHeaderText("You are about to exit the program with unsaved changes.");
-        alert.setContentText("If you do not saveSettingsButKeepCommands, all changes since the last saveSettingsButKeepCommands will be lost.");
+        alert.setContentText("If you do not save, all changes since the last save will be lost.");
 
         final ButtonType buttonTypeSave = new ButtonType("Save");
         final ButtonType buttonTypeExit = new ButtonType("Exit without saving", ButtonBar.ButtonData.CANCEL_CLOSE);
