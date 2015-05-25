@@ -457,6 +457,7 @@ public class GUIController implements Initializable, CommandQueueListener, Comma
 
     @Override
     public void commandQueueStarted(int items) {
+        commandOutputArea.clear();
         showProgressPane(true);
         commandsToRun = items;
     }
@@ -475,13 +476,14 @@ public class GUIController implements Initializable, CommandQueueListener, Comma
         commandsRunningLabel.setText("Running (" + (commandsToRun - itemsLeft + 1) + "/" + commandsToRun + ")");
         lastCommandStarted = command;
         command.addCommandListener(this);
-        commandOutputArea.appendText("\n-------  executing... " + command.getCommandNameAndArguments() + "  -------\n");
+        commandOutputArea.appendText("-------  executing... " + command.getCommandNameAndArguments() + "  -------\n");
     }
 
     @Override
     public void commandExecuted(Command command) {
         findRowForCommand(command).updateCommandStatus();
         updateGroupStatuses(commandTable.getRoot());
+        commandOutputArea.appendText("\n");
     }
 
     @Override
