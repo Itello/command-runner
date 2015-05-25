@@ -418,19 +418,23 @@ public class GUIController implements Initializable, CommandQueueListener, Comma
             case ENTER:
                 if (commandTable.getEditingCell() == null) {
                     runSelected(event);
-                    break;
                 }
-//            case UP:
-//                if (event.isAltDown()) {
-//                    keyboardMoveSelectedRows(-1);
-//                }
-//                break;
-//            case DOWN:
-//                if (event.isAltDown()) {
-//                    keyboardMoveSelectedRows(1);
-//                }
-//                break;
+                break;
+            case UP:
+                if (event.isAltDown()) {
+                    keyboardMoveSelectedRows(-1);
+                }
+                break;
+            case DOWN:
+                if (event.isAltDown()) {
+                    keyboardMoveSelectedRows(1);
+                }
+                break;
             default:
+        }
+
+        if (event.isAltDown()) { // don't let the system use alt to e.g open the menubar
+            event.consume();
         }
     }
 
@@ -589,7 +593,7 @@ public class GUIController implements Initializable, CommandQueueListener, Comma
             createdTreeItem.setGraphic(new ImageView(folderIcon));
         }
 
-        if (! treeItem.getChildren().isEmpty()) {
+        if (!treeItem.getChildren().isEmpty()) {
             treeItem.getChildren().forEach(child -> createdTreeItem.getChildren().add(copyTreeItem(child)));
         }
 
