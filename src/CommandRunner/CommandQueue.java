@@ -1,10 +1,15 @@
 package CommandRunner;
 
 import CommandRunner.gui.CommandStatus;
+import CommandRunner.gui.fxml.GUIController;
 
 import java.util.*;
 
 public class CommandQueue implements CommandListener {
+
+    public void removeListener(CommandQueueListener listener) {
+        listeners.remove(listener);
+    }
 
     private enum CommandQueueStatus {
         Stopped,
@@ -18,7 +23,11 @@ public class CommandQueue implements CommandListener {
     private CommandQueueStatus status;
 
     public CommandQueue(CommandQueueListener... listeners) {
-        this.listeners = new ArrayList<>(Arrays.asList(listeners));
+        this.listeners = new ArrayList<>();
+        if (listeners != null) {
+            this.listeners.addAll(Arrays.asList(listeners));
+        }
+
         status = CommandQueueStatus.Stopped;
         this.commands = new ArrayDeque<>();
     }
@@ -65,8 +74,15 @@ public class CommandQueue implements CommandListener {
             runningCommand = command;
             listeners.forEach(listener -> listener.commandQueueIsProcessing(command, commands.size() + 1));
             new Thread(command::execute).start();
+
+            if (listeners.isEmpty()) {
+                System.out.println("--- executing " + command.getCommandNameAndArguments() + " ----");
+            }
         } else {
             setStoppedState();
+            if (listeners.isEmpty()) {
+                System.exit(0);
+            }
         }
     }
 
@@ -85,6 +101,8 @@ public class CommandQueue implements CommandListener {
 
     @Override
     public void commandOutput(Command command, String text) {
-        // do nothing
+        if (listeners.isEmpty()) {
+            System.out.println(text);
+        }
     }
 }

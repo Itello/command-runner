@@ -15,6 +15,7 @@ import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
 
 import java.io.IOException;
+import java.util.Map;
 import java.util.Optional;
 
 public class CommandRunner extends Application {
@@ -29,6 +30,7 @@ public class CommandRunner extends Application {
 
     private final Settings settings;
     private GUIController guiController;
+    private String runCommand = null;
 
     public CommandRunner() throws Exception {
         if (instance != null) {
@@ -51,15 +53,28 @@ public class CommandRunner extends Application {
     }
 
     @Override
+    public void init() throws Exception {
+        super.init();
+
+        final Parameters parameters = getParameters();
+        final Map<String, String> namedParameters = parameters.getNamed();
+        runCommand = namedParameters.get("run");
+    }
+
+    @Override
     public void start(Stage primaryStage) throws Exception {
         this.primaryStage = primaryStage;
 
-        Parent root = FXMLLoader.load(getClass().getResource("gui/fxml/gui.fxml"));
-        primaryStage.setTitle(PROGRAM_TITLE);
-        primaryStage.getIcons().add(new Image("png/icon.png"));
-        primaryStage.setScene(createScene(root));
-        primaryStage.show();
-        primaryStage.setOnCloseRequest(this::onClose);
+        if (runCommand != null) {
+            runCommand(runCommand);
+        } else {
+            Parent root = FXMLLoader.load(getClass().getResource("gui/fxml/gui.fxml"));
+            primaryStage.setTitle(PROGRAM_TITLE);
+            primaryStage.getIcons().add(new Image("png/icon.png"));
+            primaryStage.setScene(createScene(root));
+            primaryStage.show();
+            primaryStage.setOnCloseRequest(this::onClose);
+        }
     }
 
     private void onClose(WindowEvent event) {
@@ -141,5 +156,10 @@ public class CommandRunner extends Application {
 
     public Settings getSettings() {
         return settings;
+    }
+
+    private void runCommand(String commandComment) {
+        final GUIController controller = new GUIController();
+        controller.runAllCommandsWithComment(commandComment, loadSettings());
     }
 }

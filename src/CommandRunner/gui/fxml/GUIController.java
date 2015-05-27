@@ -95,8 +95,14 @@ public class GUIController implements Initializable, CommandQueueListener, Comma
         setToolTipLabel(directoryColumn, "Starting directory (NOT command location)");
         setToolTipLabel(commandColumn, "Command name and arguments, including path if command is not in path");
 
-        directoryColumn.setOnEditCommit(event -> event.getTreeTablePosition().getTreeItem().getValue().setCommandDirectory(event.getNewValue()));
-        commentColumn.setOnEditCommit(event -> event.getTreeTablePosition().getTreeItem().getValue().setCommandComment(event.getNewValue()));
+        directoryColumn.setOnEditCommit(event -> {
+            event.getTreeTablePosition().getTreeItem().getValue().setCommandDirectory(event.getNewValue());
+            changesSinceLastSave++;
+        });
+        commentColumn.setOnEditCommit(event -> {
+            event.getTreeTablePosition().getTreeItem().getValue().setCommandComment(event.getNewValue());
+            changesSinceLastSave++;
+        });
         commandColumn.setOnEditCommit(event -> {
             event.getTreeTablePosition().getTreeItem().getValue().setCommandNameAndArguments(event.getNewValue());
             changesSinceLastSave++;
@@ -374,12 +380,31 @@ public class GUIController implements Initializable, CommandQueueListener, Comma
 
     @FXML
     private void runAll(ActionEvent event) {
-        runCommandTreeItems(getFlatTreeItemList());
+        runCommandTreeItems(getFlatTreeItemList(commandTable.getRoot()));
+    }
+
+    public void runAllCommandsWithComment(String comment, TreeItem<CommandTableRow> root) {
+        if (comment == null || comment.equals("")) {
+            return;
+        }
+
+        final List<TreeItem<CommandTableRow>> all = getFlatTreeItemList(root);
+        final List<TreeItem<CommandTableRow>> commandsWithComment = new ArrayList<>();
+        for (final TreeItem<CommandTableRow> commandItem : all) {
+            if (commandItem.getValue().commandCommentProperty().getValue().equals(comment)) {
+                commandsWithComment.add(commandItem);
+            }
+        }
+
+        runCommandTreeItems(commandsWithComment);
     }
 
     private void runCommandTreeItems(List<TreeItem<CommandTableRow>> treeItemsToRun) {
         List<CommandTableCommandRow> commandRowsToRun = new ArrayList<>();
         treeItemsToRun.forEach(item -> addAllCommandRowsForTreeItem(item, commandRowsToRun));
+        if (commandQueue == null) {
+            commandQueue = new CommandQueue(null);
+        }
 
         commandQueue.setCommands(
                 commandRowsToRun.stream()
@@ -387,7 +412,11 @@ public class GUIController implements Initializable, CommandQueueListener, Comma
                         .collect(Collectors.toList())
         );
 
-        commandTable.getSelectionModel().clearSelection();
+        if (commandTable != null) {
+            commandTable.getSelectionModel().clearSelection();
+            commandQueue.removeListener(this);
+        }
+
         commandQueue.start();
     }
 
@@ -411,6 +440,8 @@ public class GUIController implements Initializable, CommandQueueListener, Comma
 
     @FXML
     private void tableKeyPressed(KeyEvent event) {
+        boolean consume = true;
+
         switch (event.getCode()) {
             case DELETE:
                 removeCommandTableRow(event);
@@ -431,9 +462,10 @@ public class GUIController implements Initializable, CommandQueueListener, Comma
                 }
                 break;
             default:
+                consume = false;
         }
 
-        if (event.isAltDown()) { // don't let the system use alt to e.g open the menubar
+        if (consume) { // if we handled the event, don't pass event on to system (prevents things like alt opening menu on windows)
             event.consume();
         }
     }
@@ -518,7 +550,7 @@ public class GUIController implements Initializable, CommandQueueListener, Comma
     }
 
     private CommandTableCommandRow findRowForCommand(Command command) {
-        return (CommandTableCommandRow) getFlatTreeItemList().stream()
+        return (CommandTableCommandRow) getFlatTreeItemList(commandTable.getRoot()).stream()
                 .map(TreeItem::getValue)
                 .filter(row -> row instanceof CommandTableCommandRow)
                 .filter(row -> ((CommandTableCommandRow) row).getCommand() == command)
@@ -526,9 +558,9 @@ public class GUIController implements Initializable, CommandQueueListener, Comma
                 .get(0);
     }
 
-    private List<TreeItem<CommandTableRow>> getFlatTreeItemList() {
+    private List<TreeItem<CommandTableRow>> getFlatTreeItemList(TreeItem<CommandTableRow> root) {
         List<TreeItem<CommandTableRow>> items = new ArrayList<>();
-        TreeItem<CommandTableRow> node = commandTable.getRoot();
+        TreeItem<CommandTableRow> node = root;
 
         Deque<TreeItem<CommandTableRow>> rows = new ArrayDeque<>();
         rows.push(node);
