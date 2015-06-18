@@ -15,6 +15,7 @@ public class CommandTableRow {
         this.commandStatus = commandStatus;
         this.commandComment = commandComment;
     }
+
     public StringProperty commandNameAndArgumentsProperty() {
         return commandNameAndArguments;
     }

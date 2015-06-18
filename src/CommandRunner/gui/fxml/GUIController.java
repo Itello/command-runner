@@ -400,26 +400,24 @@ public class GUIController implements Initializable, CommandQueueListener, Comma
     }
 
     private void runCommandTreeItems(List<TreeItem<CommandTableRow>> treeItemsToRun) {
-        List<CommandTableCommandRow> commandRowsToRun = new ArrayList<>();
-        treeItemsToRun.forEach(item -> addAllCommandRowsForTreeItem(item, commandRowsToRun));
+        List<CommandTableCommandRow> commandTableRowsToRun = new ArrayList<>();
+        treeItemsToRun.forEach(item -> addAllCommandRowsForTreeItem(item, commandTableRowsToRun));
         if (commandQueue == null) {
-            commandQueue = new CommandQueue(null);
+            commandQueue = new CommandQueue(CommandRunner.getInstance());
         }
 
         commandQueue.setCommands(
-                commandRowsToRun.stream()
+                commandTableRowsToRun.stream()
                         .map(CommandTableCommandRow::getCommand)
                         .collect(Collectors.toList())
         );
 
         if (commandTable != null) {
             commandTable.getSelectionModel().clearSelection();
-            commandQueue.removeListener(this);
         }
 
         commandQueue.start();
     }
-
     private void addAllCommandRowsForTreeItem(TreeItem<CommandTableRow> item, List<CommandTableCommandRow> commandRows) {
         CommandTableRow row = item.getValue();
 
@@ -429,8 +427,20 @@ public class GUIController implements Initializable, CommandQueueListener, Comma
             }
 
             CommandTableCommandRow commandRow = (CommandTableCommandRow) row;
-            commandRow.getCommand().setCommandStatus(CommandStatus.IDLE);
+            final Command command = commandRow.getCommand();
+            command.setCommandStatus(CommandStatus.IDLE);
             commandRows.add(commandRow);
+
+            TreeItem<CommandTableRow> parentItem = item.getParent();
+            while (parentItem != null) {
+                final String parentCommandDirectory = parentItem.getValue().commandDirectoryProperty().getValue();
+                if (! parentCommandDirectory.isEmpty()) {
+                    command.setParentCommandDirectory(parentCommandDirectory);
+                    break;
+                }
+
+                parentItem = parentItem.getParent();
+            }
         } else if (row instanceof CommandTableGroupRow) {
             item.getChildren().forEach(child -> addAllCommandRowsForTreeItem(child, commandRows));
         } else {
@@ -567,6 +577,7 @@ public class GUIController implements Initializable, CommandQueueListener, Comma
 
         while (!rows.isEmpty()) {
             node = rows.removeFirst();
+            final TreeItem<CommandTableRow> parent = node;
             node.getChildren().forEach(rows::addLast);
             items.add(node);
         }

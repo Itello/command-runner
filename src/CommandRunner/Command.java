@@ -14,6 +14,7 @@ public class Command implements Serializable {
 
     private String commandNameAndArguments;
     private String commandDirectory;
+    private String parentCommandDirectory;
     private String commandComment;
     private Process process;
     private CommandStatus commandStatus;
@@ -65,7 +66,10 @@ public class Command implements Serializable {
                     .redirectErrorStream(true);
             if (getCommandDirectory() != null && !getCommandDirectory().isEmpty()) {
                 builder.directory(new File(commandDirectory));
+            } else if (parentCommandDirectory != null) {
+                builder.directory(new File(parentCommandDirectory));
             }
+
             process = builder.start();
             InputStreamReader inputStreamReader = new InputStreamReader(process.getInputStream());
             BufferedReader bufferedReader = new BufferedReader(inputStreamReader);
@@ -110,5 +114,9 @@ public class Command implements Serializable {
 
     public void setCommandStatus(CommandStatus commandStatus) {
         this.commandStatus = commandStatus;
+    }
+
+    public void setParentCommandDirectory(String parentCommandDirectory) {
+        this.parentCommandDirectory = parentCommandDirectory;
     }
 }

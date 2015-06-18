@@ -18,7 +18,7 @@ import java.io.IOException;
 import java.util.Map;
 import java.util.Optional;
 
-public class CommandRunner extends Application {
+public class CommandRunner extends Application implements CommandQueueListener, CommandListener {
 
     private static final String ADD_COMMAND_FXML = "gui/fxml/addCommand.fxml";
     private static final String SETTINGS_FXML = "gui/fxml/settings.fxml";
@@ -161,5 +161,30 @@ public class CommandRunner extends Application {
     private void runCommand(String commandComment) {
         final GUIController controller = new GUIController();
         controller.runAllCommandsWithComment(commandComment, loadSettings());
+    }
+
+    @Override
+    public void commandQueueStarted(int items) {
+
+    }
+
+    @Override
+    public void commandQueueFinished() {
+        System.exit(0);
+    }
+
+    @Override
+    public void commandQueueIsProcessing(Command command, int itemsLeft) {
+        System.out.println("--- executing " + command.getCommandNameAndArguments() + " ----");
+        command.addCommandListener(this);
+    }
+
+    @Override
+    public void commandExecuted(Command command) {
+    }
+
+    @Override
+    public void commandOutput(Command command, String text) {
+        System.out.println(text);
     }
 }
