@@ -1,7 +1,6 @@
 package CommandRunner;
 
 import CommandRunner.gui.CommandTableCommandRow;
-import CommandRunner.gui.CommandTableGroupRow;
 import CommandRunner.gui.CommandTableRow;
 import javafx.scene.control.TreeItem;
 import org.json.JSONArray;
@@ -9,9 +8,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.File;
-import java.io.FileReader;
 import java.io.FileWriter;
-import java.io.IOException;
 
 public class Settings {
 
@@ -21,14 +18,7 @@ public class Settings {
         FORGET
     }
 
-    private static final String DIRECTORY_STRING = "directory";
-
     private static final File SAVE_FILE = new File(System.getProperty("user.home") + System.getProperty("file.separator") + ".commandRunner");
-    private static final String COMMAND_AND_ARGUMENTS_STRING = "commandsAndArguments";
-    private static final String COMMAND_COMMENT_STRING = "commandComment";
-    private static final String NAME = "name";
-    private static final String CHILDREN = "children";
-    private static final String COMMAND = "command";
     private static final String COMMANDS = "commands";
     private static final String HALT_ON_ERROR = "haltOnError";
     private static final String CONFIRM_NONEMPTY_DELETE = "confirmNonemptyDelete";
@@ -74,77 +64,39 @@ public class Settings {
         if (commandTableRow instanceof CommandTableCommandRow) {
             Command command = ((CommandTableCommandRow) commandTableRow).getCommand();
             JSONObject commandObject = new JSONObject();
-            commandObject.put(DIRECTORY_STRING, command.getCommandDirectory());
-            commandObject.put(COMMAND_AND_ARGUMENTS_STRING, command.getCommandNameAndArguments());
-            commandObject.put(COMMAND_COMMENT_STRING, command.getCommandComment());
-            object.put(COMMAND, commandObject);
+            commandObject.put(JSONFileReader.DIRECTORY_STRING, command.getCommandDirectory());
+            commandObject.put(JSONFileReader.COMMAND_AND_ARGUMENTS_STRING, command.getCommandNameAndArguments());
+            commandObject.put(JSONFileReader.COMMAND_COMMENT_STRING, command.getCommandComment());
+            object.put(JSONFileReader.COMMAND, commandObject);
         } else {
-            object.put(NAME, commandTableRow.commandNameAndArgumentsProperty().getValue());
+            object.put(JSONFileReader.NAME, commandTableRow.commandNameAndArgumentsProperty().getValue());
             JSONArray array = new JSONArray();
             for (TreeItem<CommandTableRow> child : node.getChildren()) {
                 JSONObject childJSON = new JSONObject();
                 appendNodeHierarchyToJSON(child, childJSON);
                 array.put(childJSON);
             }
-            object.put(CHILDREN, array);
+            object.put(JSONFileReader.CHILDREN, array);
         }
-    }
-
-    private TreeItem<CommandTableRow> createNode(JSONObject object) throws JSONException {
-        JSONArray jsonChildren = object.has(CHILDREN) ? (JSONArray) object.get(CHILDREN) : null;
-        JSONObject jsonCommand = object.has(COMMAND) ? (JSONObject) object.get(COMMAND) : null;
-
-        final CommandTableRow commandTableRow;
-
-        if (jsonCommand != null) {
-            final String directory = (String) jsonCommand.get(DIRECTORY_STRING);
-            final String comment = (String) jsonCommand.get(COMMAND_COMMENT_STRING);
-            final String commandNameAndArguments = (String) jsonCommand.get(COMMAND_AND_ARGUMENTS_STRING);
-
-            commandTableRow = new CommandTableCommandRow(new Command(directory, commandNameAndArguments, comment));
-        } else {
-            commandTableRow = new CommandTableGroupRow((String) object.get(NAME));
-        }
-
-        TreeItem<CommandTableRow> node = new TreeItem<>(commandTableRow);
-
-        if (jsonChildren != null) {
-            for (int i = 0; i < jsonChildren.length(); i++) {
-                JSONObject jsonChild = jsonChildren.getJSONObject(i);
-                TreeItem<CommandTableRow> childNode = createNode(jsonChild);
-                node.getChildren().add(childNode);
-            }
-        }
-
-        return node;
     }
 
     private void load(boolean onlyCommands) {
         if (SAVE_FILE.exists()) {
             try {
-                final FileReader reader = new FileReader(SAVE_FILE);
-                final StringBuilder fileContents = new StringBuilder();
+                final JSONObject settingsObject = JSONFileReader.readJsonObjectFromFile(SAVE_FILE);
 
-                int i;
-                while ((i = reader.read()) != -1) {
-                    char ch = (char) i;
-
-                    fileContents.append(ch);
-                }
-                final JSONObject settingsObject = new JSONObject(fileContents.toString());
-                setRoot(createNode(settingsObject.getJSONObject(COMMANDS)));
+                setRoot(JSONFileReader.createNode(settingsObject.getJSONObject(COMMANDS)));
                 if (!onlyCommands) {
                     haltOnError = settingsObject.getBoolean(HALT_ON_ERROR);
                     confirmNonemptyDelete = settingsObject.getBoolean(CONFIRM_NONEMPTY_DELETE);
                     saveOnExit = SaveOnExit.valueOf(settingsObject.getString(SAVE_ON_EXIT));
                 }
-
-                reader.close();
-            } catch (IOException | JSONException e) {
+            } catch (JSONException e) {
                 e.printStackTrace();
             }
         }
     }
+
 
     void load() {
         load(false);

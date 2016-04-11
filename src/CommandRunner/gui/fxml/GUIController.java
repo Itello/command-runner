@@ -21,7 +21,10 @@ import javafx.scene.input.TransferMode;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.GridPane;
 import javafx.util.converter.DefaultStringConverter;
+import org.json.JSONException;
+import org.json.JSONObject;
 
+import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.util.*;
@@ -119,15 +122,6 @@ public class GUIController implements Initializable, CommandQueueListener, Comma
                     cell.setOnDragOver(event -> event.acceptTransferModes(TransferMode.MOVE, TransferMode.COPY));
 
                     cell.setOnDragDropped(event -> {
-                        final boolean copying;
-                        if (event.getAcceptedTransferMode().equals(TransferMode.COPY)) {
-                            copying = true;
-                        } else if (event.getAcceptedTransferMode().equals(TransferMode.MOVE)) {
-                            copying = false;
-                        } else {
-                            return;
-                        }
-
                         if (cell.getIndex() == dragStartIndex) {
                             return;
                         }
@@ -137,10 +131,34 @@ public class GUIController implements Initializable, CommandQueueListener, Comma
                             return;
                         }
 
-                        if (copying) {
-                            copyRowsToItem(cell.getTreeTableRow().getTreeItem());
+                        final Dragboard dragboard = event.getDragboard();
+                        if (dragboard.hasFiles()) {
+                            String filePath = null;
+                            for (File file : dragboard.getFiles()) {
+                                try {
+                                    final JSONObject jsonObject = JSONFileReader.readJsonObjectFromFile(file);
+                                    final List<TreeItem<CommandTableRow>> node = JSONFileReader.createNodes(jsonObject);
+                                    moveRowsToItem(cell.getTreeTableRow().getTreeItem(), node, true);
+                                } catch (JSONException e) {
+                                    e.printStackTrace();
+                                }
+                            }
                         } else {
-                            moveRowsToItem(cell.getTreeTableRow().getTreeItem(), dragRows, true);
+
+                            final boolean copying;
+                            if (event.getAcceptedTransferMode().equals(TransferMode.COPY)) {
+                                copying = true;
+                            } else if (event.getAcceptedTransferMode().equals(TransferMode.MOVE)) {
+                                copying = false;
+                            } else {
+                                return;
+                            }
+
+                            if (copying) {
+                                copyRowsToItem(cell.getTreeTableRow().getTreeItem());
+                            } else {
+                                moveRowsToItem(cell.getTreeTableRow().getTreeItem(), dragRows, true);
+                            }
                         }
 
                         dragRows = null;
