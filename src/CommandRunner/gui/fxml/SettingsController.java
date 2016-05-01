@@ -65,7 +65,8 @@ public class SettingsController implements Initializable {
                 return saveOnExitRadioButton;
             case FORGET:
                 return forgetOnExitRadioButton;
-            default: return null;
+            default:
+                return null;
         }
     }
 

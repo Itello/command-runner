@@ -14,18 +14,17 @@ import javafx.scene.control.*;
 import javafx.scene.control.cell.TextFieldTreeTableCell;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import javafx.scene.input.ClipboardContent;
-import javafx.scene.input.Dragboard;
-import javafx.scene.input.KeyEvent;
-import javafx.scene.input.TransferMode;
+import javafx.scene.input.*;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.GridPane;
 import javafx.util.converter.DefaultStringConverter;
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.net.URL;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -74,7 +73,6 @@ public class GUIController implements Initializable, CommandQueueListener, Comma
 
     private Command lastCommandStarted;
 
-    private List<TreeItem<CommandTableRow>> dragRows;
     private int dragStartIndex;
 
     private final Image folderIcon = new Image("png/folder.png");
@@ -88,6 +86,7 @@ public class GUIController implements Initializable, CommandQueueListener, Comma
     public void initialize(URL fxmlFileLocation, ResourceBundle resources) {
         assert commandTable != null : "fx:id=\"commandTable\" was not injected: check FXML file 'gui.fxml'.";
 
+        commandTable.addEventFilter(KeyEvent.KEY_PRESSED, this::tableKeyPressed);
         commandTable.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
 
         commandColumn.setCellValueFactory(cellData -> cellData.getValue().getValue().commandNameAndArgumentsProperty());
@@ -122,28 +121,35 @@ public class GUIController implements Initializable, CommandQueueListener, Comma
                     cell.setOnDragOver(event -> event.acceptTransferModes(TransferMode.MOVE, TransferMode.COPY));
 
                     cell.setOnDragDropped(event -> {
-                        if (cell.getIndex() == dragStartIndex) {
-                            return;
-                        }
-
                         final TreeTableRow<CommandTableRow> treeTableRow = cell.getTreeTableRow();
                         if (treeTableRow == null) {
                             return;
                         }
 
                         final Dragboard dragboard = event.getDragboard();
-                        if (dragboard.hasFiles()) {
+
+                        if (isExternalSource(event) && dragboard.hasFiles()) {
                             String filePath = null;
                             for (File file : dragboard.getFiles()) {
                                 try {
-                                    final JSONObject jsonObject = JSONFileReader.readJsonObjectFromFile(file);
-                                    final List<TreeItem<CommandTableRow>> node = JSONFileReader.createNodes(jsonObject);
-                                    moveRowsToItem(cell.getTreeTableRow().getTreeItem(), node, true);
+                                    final String jsonFromFile = JSONFileReader.readJsonObjectFromFile(file);
+                                    if (jsonFromFile.startsWith("[")) {
+                                        JSONArray array = JsonConverter.convertFromJSONToArray(jsonFromFile);
+                                        final List<TreeItem<CommandTableRow>> nodes = JSONFileReader.createNodes(array);
+                                        moveRowsToItem(cell.getTreeTableRow().getTreeItem(), true, true, nodes);
+                                    } else {
+                                        JSONObject object = JsonConverter.convertFromJSONToObject(jsonFromFile);
+                                        final TreeItem<CommandTableRow> node = JSONFileReader.convertToNode(object);
+                                        moveRowsToItem(cell.getTreeTableRow().getTreeItem(), true, true, Collections.singletonList(node));
+                                    }
                                 } catch (JSONException e) {
                                     e.printStackTrace();
                                 }
                             }
                         } else {
+                            if (cell.getIndex() == dragStartIndex) {
+                                return;
+                            }
 
                             final boolean copying;
                             if (event.getAcceptedTransferMode().equals(TransferMode.COPY)) {
@@ -157,24 +163,42 @@ public class GUIController implements Initializable, CommandQueueListener, Comma
                             if (copying) {
                                 copyRowsToItem(cell.getTreeTableRow().getTreeItem());
                             } else {
-                                moveRowsToItem(cell.getTreeTableRow().getTreeItem(), dragRows, true);
+                                moveRowsToItem(cell.getTreeTableRow().getTreeItem(), true, null);
                             }
                         }
 
-                        dragRows = null;
+                        event.setDropCompleted(true);
                         event.consume();
                     });
 
                     cell.setOnDragDetected(event -> {
                         // drag was detected, start drag-and-drop gesture
-                        ObservableList<TreeItem<CommandTableRow>> selected = commandTable.getSelectionModel().getSelectedItems();
+                        ObservableList<TreeItem<CommandTableRow>> selected = getSelectedItems();
+
                         if (selected != null && !selected.isEmpty()) {
                             Dragboard db = commandTable.startDragAndDrop(TransferMode.ANY);
                             final ClipboardContent content = new ClipboardContent();
-                            content.putString("Drag Me!");
+
+                            try {
+                                File file = File.createTempFile(".commandRunner", ".json");
+                                PrintWriter printWriter = new PrintWriter(file, "UTF-8");
+                                if (selected.size() == 1) {
+                                    JSONObject jsonObject = JsonConverter.convertToJSON(selected.get(0));
+                                    printWriter.print(jsonObject.toString(2));
+                                } else {
+                                    JSONArray array = JsonConverter.convertToJSON(selected);
+                                    printWriter.print(array.toString(2));
+                                }
+                                printWriter.close();
+                                content.putFiles(Collections.singletonList(file));
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                            }
+
+                            content.put(DataFormat.PLAIN_TEXT, "drag");
                             db.setContent(content);
                             dragStartIndex = cell.getIndex();
-                            dragRows = new ArrayList<>(selected);
+
                             event.consume();
                         }
                     });
@@ -190,68 +214,101 @@ public class GUIController implements Initializable, CommandQueueListener, Comma
         CommandRunner.getInstance().controllerLoaded(this);
     }
 
+    private ObservableList<TreeItem<CommandTableRow>> getSelectedItems() {
+        ObservableList<TreeItem<CommandTableRow>> selectedItems = commandTable.getSelectionModel().getSelectedItems();
+        boolean containsNull = true;
+        // unfortunate hack to refresh selected items
+        while (containsNull) {
+            containsNull = false;
+            for (TreeItem<CommandTableRow> selectedItem : selectedItems) {
+                if (selectedItem == null) {
+                    containsNull = true;
+                    //noinspection ResultOfMethodCallIgnored
+                    selectedItems.toString();
+                }
+            }
+        }
+
+        return selectedItems;
+    }
+
+    private boolean isExternalSource(DragEvent event) {
+        return event.getGestureSource() == null;
+    }
+
     private void copyRowsToItem(TreeItem<CommandTableRow> itemToDragTo) {
-        moveRowsToItem(itemToDragTo, dragRows, true, true);
+        moveRowsToItem(itemToDragTo, true, true, null);
     }
 
-    private void moveRowsToItem(TreeItem<CommandTableRow> itemToDragTo, List<TreeItem<CommandTableRow>> dragRows, boolean moveIntoIfGroup) {
-        moveRowsToItem(itemToDragTo, dragRows, moveIntoIfGroup, false);
+    private void moveRowsToItem(TreeItem<CommandTableRow> itemToDragTo, boolean moveIntoIfGroup, List<TreeItem<CommandTableRow>> dragRows) {
+        moveRowsToItem(itemToDragTo, moveIntoIfGroup, false, dragRows);
     }
 
-    private void moveRowsToItem(TreeItem<CommandTableRow> itemToDragTo, List<TreeItem<CommandTableRow>> dragRows, boolean moveIntoIfGroup, boolean copy) {
+    private void moveRowsToItem(TreeItem<CommandTableRow> itemToDragTo, boolean moveIntoIfGroup, boolean copy, List<TreeItem<CommandTableRow>> dragRows) {
         if (itemToDragTo == null) {
-            return;
-        }
-
-        commandTable.getSelectionModel().clearSelection();
-        final TreeItem<CommandTableRow> parentToDragTo;
-        int indexOfItemToDragTo;
-
-        if (moveIntoIfGroup && itemToDragTo.getValue() instanceof CommandTableGroupRow) {
-            parentToDragTo = itemToDragTo;
+            moveRowsToIndex(getRoot().getChildren().size(), copy, null, getRoot());
         } else {
-            parentToDragTo = itemToDragTo.getParent();
-            if (parentToDragTo == null) {
-                return;
+            final TreeItem<CommandTableRow> parentToDragTo;
+            int indexOfItemToDragTo;
+
+            if (moveIntoIfGroup && itemToDragTo.getValue() instanceof CommandTableGroupRow) {
+                parentToDragTo = itemToDragTo;
+            } else {
+                parentToDragTo = itemToDragTo.getParent();
+                if (parentToDragTo == null) {
+                    return;
+                }
             }
+
+            indexOfItemToDragTo = parentToDragTo.getChildren().indexOf(itemToDragTo);
+
+            moveRowsToIndex(indexOfItemToDragTo, copy, dragRows, parentToDragTo);
         }
+    }
 
-        TreeItem<CommandTableRow> node = parentToDragTo;
-
-        do {
-            if (dragRows.contains(node)) {
-                return;
-            }
-        } while ((node = node.getParent()) != null);
-
-
-        indexOfItemToDragTo = parentToDragTo.getChildren().indexOf(itemToDragTo);
+    private void moveRowsToIndex(int index, boolean copy, List<TreeItem<CommandTableRow>> dragRows, TreeItem<CommandTableRow> parent) {
+        if (dragRows == null) {
+            dragRows = getSelectedItems();
+        }
 
         final List<TreeItem<CommandTableRow>> rowsToCopyOrMove;
         if (copy) {
             rowsToCopyOrMove = deepCopyRows(dragRows);
         } else {
-            rowsToCopyOrMove = dragRows;
+            rowsToCopyOrMove = new ArrayList<>(dragRows);
             rowsToCopyOrMove.forEach(row -> row.getParent().getChildren().remove(row));
         }
 
-        while (indexOfItemToDragTo > parentToDragTo.getChildren().size()) {
-            indexOfItemToDragTo--;
+        while (index > parent.getChildren().size()) {
+            index--;
         }
 
-        if (indexOfItemToDragTo < 0) {
-            indexOfItemToDragTo = 0;
+        if (index < 0) {
+            index = 0;
         }
-
-        parentToDragTo.getChildren().addAll(indexOfItemToDragTo, rowsToCopyOrMove);
-
+        parent.getChildren().addAll(index, rowsToCopyOrMove);
+        final int indexToSelect = commandTable.getRow(rowsToCopyOrMove.get(0));
         Platform.runLater(() -> {
-            parentToDragTo.setExpanded(true);
-            int firstRowIndex = commandTable.getRow(rowsToCopyOrMove.get(0));
-            commandTable.getSelectionModel().selectRange(firstRowIndex, firstRowIndex + dragRows.size());
+            parent.setExpanded(true);
+            List<Integer> indices = new ArrayList<>();
+            for (int i = 0; i < rowsToCopyOrMove.size(); i++) {
+                indices.add(indexToSelect + i);
+            }
+            selectIndices(indices);
         });
 
-        changesSinceLastSave++;
+//        changesSinceLastSave++;
+    }
+
+    private void selectIndices(List<Integer> indices) {
+        commandTable.getSelectionModel().clearSelection();
+        if (indices.size() > 1) {
+            List<Integer> subList = indices.subList(1, indices.size());
+            int[] tail = subList.stream().mapToInt(i -> i).toArray();
+            commandTable.getSelectionModel().selectIndices(indices.get(0), tail);
+        } else {
+            commandTable.getSelectionModel().select(indices.get(0));
+        }
     }
 
     private List<TreeItem<CommandTableRow>> deepCopyRows(List<TreeItem<CommandTableRow>> dragRows) {
@@ -290,7 +347,7 @@ public class GUIController implements Initializable, CommandQueueListener, Comma
     }
 
     private void addSelectedItemsToGroup(String name) {
-        final List<TreeItem<CommandTableRow>> selectedItems = new ArrayList<>(commandTable.getSelectionModel().getSelectedItems());
+        final List<TreeItem<CommandTableRow>> selectedItems = new ArrayList<>(getSelectedItems());
         if (selectedItems.isEmpty()) {
             return;
         }
@@ -311,22 +368,22 @@ public class GUIController implements Initializable, CommandQueueListener, Comma
             moveToIndex = 0;
         }
 
-        parent.getChildren().add(moveToIndex, group);
         commandTable.getSelectionModel().clearSelection();
-        Platform.runLater(() -> commandTable.edit(commandTable.getRow(group), commandColumn));
+        parent.getChildren().add(moveToIndex, group);
+
+        commandTable.edit(commandTable.getRow(group), commandColumn);
+        commandTable.focusModelProperty().get().focus(commandTable.getRow(group), commandColumn);
 
         changesSinceLastSave++;
     }
 
     @FXML
     private void removeCommandTableRow(Event event) {
-        final ArrayList<TreeItem<CommandTableRow>> commandTableRows = new ArrayList<>(commandTable.getSelectionModel().getSelectedItems());
+        final ArrayList<TreeItem<CommandTableRow>> commandTableRows = new ArrayList<>(getSelectedItems());
 
-        commandTable.getSelectionModel().getSelectedItems().stream()
+        getSelectedItems().stream()
                 .filter(item -> commandTableRows.contains(item.getParent()))
                 .forEach(commandTableRows::remove);
-
-        commandTable.getSelectionModel().clearSelection();
 
         for (final TreeItem<CommandTableRow> item : commandTableRows) {
             final CommandTableRow row = item.getValue();
@@ -344,7 +401,7 @@ public class GUIController implements Initializable, CommandQueueListener, Comma
                 alert.getButtonTypes().setAll(buttonTypeOK, buttonTypeCancel);
 
                 final Optional<ButtonType> result = alert.showAndWait();
-                if (result.get() == buttonTypeOK) {
+                if (result.isPresent() && result.get() == buttonTypeOK) {
                     removeCommandTableItem(item);
                 } else {
                     return;
@@ -393,7 +450,7 @@ public class GUIController implements Initializable, CommandQueueListener, Comma
 
     @FXML
     private void runSelected(Event event) {
-        runCommandTreeItems(commandTable.getSelectionModel().getSelectedItems());
+        runCommandTreeItems(getSelectedItems());
     }
 
     @FXML
@@ -436,6 +493,7 @@ public class GUIController implements Initializable, CommandQueueListener, Comma
 
         commandQueue.start();
     }
+
     private void addAllCommandRowsForTreeItem(TreeItem<CommandTableRow> item, List<CommandTableCommandRow> commandRows) {
         CommandTableRow row = item.getValue();
 
@@ -452,7 +510,7 @@ public class GUIController implements Initializable, CommandQueueListener, Comma
             TreeItem<CommandTableRow> parentItem = item.getParent();
             while (parentItem != null) {
                 final String parentCommandDirectory = parentItem.getValue().commandDirectoryProperty().getValue();
-                if (! parentCommandDirectory.isEmpty()) {
+                if (!parentCommandDirectory.isEmpty()) {
                     command.setParentCommandDirectory(parentCommandDirectory);
                     break;
                 }
@@ -477,32 +535,35 @@ public class GUIController implements Initializable, CommandQueueListener, Comma
             case ENTER:
                 if (commandTable.getEditingCell() == null) {
                     runSelected(event);
+                } else {
+                    consume = false;
                 }
                 break;
-            case UP:
-                if (event.isAltDown()) {
-                    keyboardMoveSelectedRows(-1);
-                }
+            case PAGE_UP:
+                keyboardMoveSelectedRows(-1);
                 break;
-            case DOWN:
-                if (event.isAltDown()) {
-                    keyboardMoveSelectedRows(1);
-                }
+            case PAGE_DOWN:
+                keyboardMoveSelectedRows(1);
                 break;
             default:
                 consume = false;
         }
 
-        if (consume) { // if we handled the event, don't pass event on to system (prevents things like alt opening menu on windows)
+        if (consume) {
             event.consume();
         }
     }
 
     private void keyboardMoveSelectedRows(int modifier) {
-        final List<TreeItem<CommandTableRow>> selected = new ArrayList<>(commandTable.getSelectionModel().getSelectedItems());
+        ArrayList<TreeItem<CommandTableRow>> selected = new ArrayList<>(getSelectedItems());
         if (!selected.isEmpty()) {
-            dragStartIndex = commandTable.getRow(selected.get(0));
-            moveRowsToItem(commandTable.getTreeItem(dragStartIndex + modifier), new ArrayList<>(selected), false);
+            dragStartIndex = commandTable.getSelectionModel().getSelectedIndices().stream()
+                    .filter(index -> index >= 0)
+                    .min(Integer::compare)
+                    .orElseThrow(() -> new IllegalStateException("umm"));
+            if (dragStartIndex + modifier >= 0) {
+                moveRowsToItem(commandTable.getTreeItem(dragStartIndex + modifier), false, null);
+            }
         }
     }
 

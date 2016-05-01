@@ -11,6 +11,8 @@ import org.json.JSONObject;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 public class JSONFileReader {
     static final String COMMAND_AND_ARGUMENTS_STRING = "commandsAndArguments";
@@ -20,9 +22,8 @@ public class JSONFileReader {
     static final String COMMAND = "command";
     static final String DIRECTORY_STRING = "directory";
 
-    public static JSONObject readJsonObjectFromFile(File file) throws JSONException {
+    public static String readJsonObjectFromFile(File file) throws JSONException {
         final StringBuilder fileContents = new StringBuilder();
-        JSONObject settingsObject = null;
         try {
             final java.io.FileReader reader = new java.io.FileReader(file);
             int i;
@@ -31,16 +32,14 @@ public class JSONFileReader {
 
                 fileContents.append(ch);
             }
-            settingsObject = new JSONObject(fileContents.toString());
-            reader.close();
         } catch (IOException e) {
             e.printStackTrace();
         }
 
-        return settingsObject;
+        return fileContents.toString();
     }
 
-    public static TreeItem<CommandTableRow> createNode(JSONObject object) throws JSONException {
+    static TreeItem<CommandTableRow> createNode(JSONObject object) throws JSONException {
         JSONArray jsonChildren = object.has(CHILDREN) ? (JSONArray) object.get(CHILDREN) : null;
         JSONObject jsonCommand = object.has(COMMAND) ? (JSONObject) object.get(COMMAND) : null;
 
@@ -69,7 +68,17 @@ public class JSONFileReader {
         return node;
     }
 
-    public static ObservableList<TreeItem<CommandTableRow>> createNodes(JSONObject object) throws JSONException {
-        return createNode(object).getChildren();
+    public static TreeItem<CommandTableRow> convertToNode(JSONObject object) throws JSONException {
+        return createNode(object);
+    }
+
+    public static List<TreeItem<CommandTableRow>> createNodes(JSONArray array) throws JSONException {
+        List<TreeItem<CommandTableRow>> nodes = new ArrayList<>();
+        for(int i = 0; i < array.length(); i++) {
+            TreeItem<CommandTableRow> node = createNode(array.getJSONObject(i));
+            nodes.add(node);
+        }
+
+        return nodes;
     }
 }
