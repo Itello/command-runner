@@ -52,7 +52,9 @@ public class JSONFileReader {
 
             commandTableRow = new CommandTableCommandRow(new Command(directory, commandNameAndArguments, comment));
         } else {
-            commandTableRow = new CommandTableGroupRow((String) object.get(NAME));
+            String directory = object.has(DIRECTORY_STRING) ? object.getString(DIRECTORY_STRING) : "";
+            String comment = object.has(COMMAND_COMMENT_STRING) ? object.getString(COMMAND_COMMENT_STRING) : "";
+            commandTableRow = new CommandTableGroupRow(object.getString(NAME), directory, comment);
         }
 
         TreeItem<CommandTableRow> node = new TreeItem<>(commandTableRow);

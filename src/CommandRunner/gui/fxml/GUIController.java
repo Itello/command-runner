@@ -354,7 +354,7 @@ public class GUIController implements Initializable, CommandQueueListener, Comma
 
         final TreeItem<CommandTableRow> item = selectedItems.get(0);
         final TreeItem<CommandTableRow> parent = item.getParent();
-        final TreeItem<CommandTableRow> group = copyTreeItem(new TreeItem<>(new CommandTableGroupRow(name)));
+        final TreeItem<CommandTableRow> group = copyTreeItem(new TreeItem<>(new CommandTableGroupRow(name, "", "")));
 
         int moveToIndex = parent.getChildren().indexOf(item);
 
@@ -671,7 +671,7 @@ public class GUIController implements Initializable, CommandQueueListener, Comma
     public void setRoot(TreeItem<CommandTableRow> commandTreeNode) {
         TreeItem<CommandTableRow> commandTreeNode1 = commandTreeNode;
         if (commandTreeNode1 == null) {
-            commandTreeNode1 = new TreeItem<>(new CommandTableGroupRow("root"));
+            commandTreeNode1 = new TreeItem<>(new CommandTableGroupRow("root", "", ""));
         }
 
         commandTable.setRoot(copyTreeItem(commandTreeNode1));
@@ -706,7 +706,7 @@ public class GUIController implements Initializable, CommandQueueListener, Comma
         if (row instanceof CommandTableCommandRow) {
             createdRow = new CommandTableCommandRow(((CommandTableCommandRow) row).getCommand().copy());
         } else if (row instanceof CommandTableGroupRow) {
-            createdRow = new CommandTableGroupRow(row.commandNameAndArgumentsProperty().getValue());
+            createdRow = new CommandTableGroupRow(row.commandNameAndArgumentsProperty().getValue(), row.commandDirectoryProperty().getValue(), row.commandCommentProperty().getValue());
         } else {
             throw new UnsupportedOperationException("invalid command row");
         }
