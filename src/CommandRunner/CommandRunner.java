@@ -1,7 +1,8 @@
 package CommandRunner;
 
-import CommandRunner.gui.CommandTableRow;
-import CommandRunner.gui.fxml.GUIController;
+import CommandRunner.gui.commandtable.CommandTableCommandRow;
+import CommandRunner.gui.commandtable.CommandTableRow;
+import CommandRunner.gui.fxml.MainController;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
@@ -15,12 +16,16 @@ import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
-import java.util.Optional;
+import java.util.stream.Collectors;
+
+import static CommandRunner.gui.commandtable.CommandTableRowTreeItemListManipulator.addAllCommandRowsForTreeItem;
+import static CommandRunner.gui.commandtable.CommandTableRowTreeItemListManipulator.getFlatTreeItemList;
 
 public class CommandRunner extends Application implements CommandQueueListener, CommandListener {
 
-    private static final String ADD_COMMAND_FXML = "gui/fxml/addCommand.fxml";
     private static final String SETTINGS_FXML = "gui/fxml/settings.fxml";
     private static final String PROGRAM_TITLE = "Command Runner";
 
@@ -29,8 +34,9 @@ public class CommandRunner extends Application implements CommandQueueListener, 
     private Stage primaryStage;
 
     private final Settings settings;
-    private GUIController guiController;
+
     private String runCommand = null;
+    private TreeItem<CommandTableRow> rootNode;
 
     public CommandRunner() throws Exception {
         if (instance != null) {
@@ -40,12 +46,8 @@ public class CommandRunner extends Application implements CommandQueueListener, 
         instance = this;
     }
 
-    public FXMLLoader getCommandFXML() {
-        return getFXML(ADD_COMMAND_FXML);
-    }
-
-    private FXMLLoader getFXML(String resource) {
-        return new FXMLLoader(getClass().getResource(resource));
+    private FXMLLoader getFXML() {
+        return new FXMLLoader(getClass().getResource(CommandRunner.SETTINGS_FXML));
     }
 
     public static CommandRunner getInstance() {
@@ -68,7 +70,7 @@ public class CommandRunner extends Application implements CommandQueueListener, 
         if (runCommand != null) {
             runCommand(runCommand);
         } else {
-            Parent root = FXMLLoader.load(getClass().getResource("gui/fxml/gui.fxml"));
+            Parent root = FXMLLoader.load(getClass().getResource("gui/fxml/main.fxml"));
             primaryStage.setTitle(PROGRAM_TITLE);
             primaryStage.getIcons().add(new Image("png/icon.png"));
             primaryStage.setScene(createScene(root));
@@ -80,7 +82,7 @@ public class CommandRunner extends Application implements CommandQueueListener, 
     private void onClose(WindowEvent event) {
         switch (settings.getSaveOnExit()) {
             case ASK:
-                if (guiController.hasChangesSinceLastSave()) {
+                if (settings.hasChangesSinceLastSave()) {
                     showAskSaveAlert(event);
                 }
                 break;
@@ -97,18 +99,19 @@ public class CommandRunner extends Application implements CommandQueueListener, 
         alert.setHeaderText("You are about to exit the program with unsaved changes.");
         alert.setContentText("If you do not save, all changes since the last save will be lost.");
 
-        final ButtonType buttonTypeSave = new ButtonType("Save");
-        final ButtonType buttonTypeExit = new ButtonType("Exit without saving", ButtonBar.ButtonData.CANCEL_CLOSE);
-        final ButtonType buttonTypeContinue = new ButtonType("Cancel exit", ButtonBar.ButtonData.OTHER);
+        final ButtonType buttonTypeSave = new ButtonType("Save", ButtonBar.ButtonData.YES);
+        final ButtonType buttonTypeExit = new ButtonType("Exit without saving", ButtonBar.ButtonData.NO);
+        final ButtonType buttonTypeCancelClose = new ButtonType("Cancel exit", ButtonBar.ButtonData.CANCEL_CLOSE);
 
-        alert.getButtonTypes().setAll(buttonTypeSave, buttonTypeContinue, buttonTypeExit);
+        alert.getButtonTypes().setAll(buttonTypeSave, buttonTypeCancelClose, buttonTypeExit);
 
-        final Optional<ButtonType> result = alert.showAndWait();
-        if (result.get() == buttonTypeSave) {
-            save();
-        } else if (result.get() == buttonTypeContinue) {
-            event.consume();
-        }
+        alert.showAndWait().ifPresent(result -> {
+            if (result == buttonTypeSave) {
+                save();
+            } else if (result == buttonTypeCancelClose) {
+                event.consume();
+            }
+        });
     }
 
     private Scene createScene(Parent root) {
@@ -118,7 +121,7 @@ public class CommandRunner extends Application implements CommandQueueListener, 
     }
 
     public void addSettingsStage() throws IOException {
-        FXMLLoader loader = getFXML(SETTINGS_FXML);
+        FXMLLoader loader = getFXML();
         Parent root = loader.load();
         Stage settingsStage = new Stage();
         settingsStage.setTitle("Settings");
@@ -131,10 +134,9 @@ public class CommandRunner extends Application implements CommandQueueListener, 
         launch(args);
     }
 
-    public void controllerLoaded(GUIController controller) {
-        final TreeItem<CommandTableRow> root = loadSettings();
-        controller.setRoot(root);
-        guiController = controller;
+    public void controllerLoaded(MainController controller) {
+        rootNode = loadSettings();
+        controller.setRoot(rootNode);
     }
 
     public Stage getPrimaryStage() {
@@ -145,11 +147,11 @@ public class CommandRunner extends Application implements CommandQueueListener, 
         settings.save(node);
     }
 
-    public void save() {
-        guiController.save();
+    private void save() {
+        save(rootNode);
     }
 
-    public TreeItem<CommandTableRow> loadSettings() {
+    private TreeItem<CommandTableRow> loadSettings() {
         settings.load();
         return settings.getRoot();
     }
@@ -159,22 +161,49 @@ public class CommandRunner extends Application implements CommandQueueListener, 
     }
 
     private void runCommand(String commandComment) {
-        final GUIController controller = new GUIController();
-        controller.runAllCommandsWithComment(commandComment, loadSettings());
+        runAllCommandsWithComment(commandComment, loadSettings());
+    }
+
+    private void runAllCommandsWithComment(String comment, TreeItem<CommandTableRow> root) {
+        if (comment == null || comment.equals("")) {
+            return;
+        }
+
+        final List<TreeItem<CommandTableRow>> commandsWithComment = getFlatTreeItemList(root).stream()
+                .filter(commandItem -> commandItem.getValue().commandCommentProperty().getValue().equals(comment))
+                .collect(Collectors.toList());
+
+        runCommandTreeItems(commandsWithComment, this);
+    }
+
+    public void runCommandTreeItems(List<TreeItem<CommandTableRow>> treeItemsToRun, CommandQueueListener... listeners) {
+        List<CommandTableCommandRow> commandTableRowsToRun = new ArrayList<>();
+        treeItemsToRun.forEach(item -> addAllCommandRowsForTreeItem(item, commandTableRowsToRun));
+        CommandQueue commandQueue = new CommandQueue(listeners);
+
+        commandQueue.setCommands(
+                commandTableRowsToRun.stream()
+                        .map(CommandTableCommandRow::getCommand)
+                        .map(Command::copy)
+                        .collect(Collectors.toList())
+        );
+
+        commandQueue.start();
+    }
+
+
+    @Override
+    public void commandQueueStarted(CommandQueue commandQueue) {
+
     }
 
     @Override
-    public void commandQueueStarted(int items) {
-
-    }
-
-    @Override
-    public void commandQueueFinished() {
+    public void commandQueueFinished(CommandQueue commandQueue) {
         System.exit(0);
     }
 
     @Override
-    public void commandQueueIsProcessing(Command command, int itemsLeft) {
+    public void commandQueueIsProcessing(Command command) {
         System.out.println("--- executing " + command.getCommandNameAndArguments() + " ----");
         command.addCommandListener(this);
     }

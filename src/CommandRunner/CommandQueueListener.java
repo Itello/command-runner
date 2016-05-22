@@ -1,7 +1,7 @@
 package CommandRunner;
 
 public interface CommandQueueListener {
-    void commandQueueStarted(int items);
-    void commandQueueFinished();
-    void commandQueueIsProcessing(Command command, int itemsLeft);
+    void commandQueueStarted(CommandQueue commandQueue);
+    void commandQueueFinished(CommandQueue commandQueue);
+    void commandQueueIsProcessing(Command command);
 }

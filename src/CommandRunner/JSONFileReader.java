@@ -1,9 +1,8 @@
 package CommandRunner;
 
-import CommandRunner.gui.CommandTableCommandRow;
-import CommandRunner.gui.CommandTableGroupRow;
-import CommandRunner.gui.CommandTableRow;
-import javafx.collections.ObservableList;
+import CommandRunner.gui.commandtable.CommandTableCommandRow;
+import CommandRunner.gui.commandtable.CommandTableGroupRow;
+import CommandRunner.gui.commandtable.CommandTableRow;
 import javafx.scene.control.TreeItem;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -22,7 +21,7 @@ public class JSONFileReader {
     static final String COMMAND = "command";
     static final String DIRECTORY_STRING = "directory";
 
-    public static String readJsonObjectFromFile(File file) throws JSONException {
+    public static String readJsonObjectFromFile(File file) {
         final StringBuilder fileContents = new StringBuilder();
         try {
             final java.io.FileReader reader = new java.io.FileReader(file);

@@ -51,8 +51,7 @@ public class SettingsController implements Initializable {
         settings.setConfirmNonemptyDelete(confirmNonemptyDeleteCheckBox.isSelected());
         settings.setSaveOnExit(getSaveOnExitFromToggleGroup());
         settings.saveSettingsButKeepCommands();
-        Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
-        stage.close();
+        closeStage(event);
     }
 
     private RadioButton getButtonFromSaveOnExitSettings(Settings settings) {
@@ -81,5 +80,14 @@ public class SettingsController implements Initializable {
         }
 
         return null;
+    }
+
+    public void cancel(ActionEvent event) {
+        closeStage(event);
+    }
+
+    private void closeStage(ActionEvent event) {
+        Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
+        stage.close();
     }
 }

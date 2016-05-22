@@ -1,7 +1,7 @@
 package CommandRunner;
 
-import CommandRunner.gui.CommandTableCommandRow;
-import CommandRunner.gui.CommandTableRow;
+import CommandRunner.gui.commandtable.CommandTableCommandRow;
+import CommandRunner.gui.commandtable.CommandTableRow;
 import javafx.scene.control.TreeItem;
 import org.json.JSONArray;
 import org.json.JSONException;

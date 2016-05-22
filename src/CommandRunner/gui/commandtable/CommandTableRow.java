@@ -1,4 +1,4 @@
-package CommandRunner.gui;
+package CommandRunner.gui.commandtable;
 
 import javafx.beans.property.StringProperty;
 
@@ -6,10 +6,11 @@ public class CommandTableRow {
 
     private final StringProperty commandNameAndArguments;
     private final StringProperty commandDirectory;
+    // TODO: remove status column
     private final StringProperty commandStatus;
     private final StringProperty commandComment;
 
-    protected CommandTableRow(StringProperty commandNameAndArguments, StringProperty commandDirectory, StringProperty commandStatus, StringProperty commandComment) {
+    CommandTableRow(StringProperty commandNameAndArguments, StringProperty commandDirectory, StringProperty commandStatus, StringProperty commandComment) {
         this.commandNameAndArguments = commandNameAndArguments;
         this.commandDirectory = commandDirectory;
         this.commandStatus = commandStatus;

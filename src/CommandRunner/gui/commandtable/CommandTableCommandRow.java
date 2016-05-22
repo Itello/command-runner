@@ -1,11 +1,12 @@
-package CommandRunner.gui;
+package CommandRunner.gui.commandtable;
 
 import CommandRunner.Command;
+import CommandRunner.gui.CommandStatus;
 import javafx.beans.property.SimpleStringProperty;
 
 public class CommandTableCommandRow extends CommandTableRow {
 
-    private Command command;
+    private final Command command;
 
     public CommandTableCommandRow(Command command) {
         super(

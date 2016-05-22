@@ -1,4 +1,4 @@
-package CommandRunner.gui;
+package CommandRunner.gui.commandtable;
 
 import javafx.beans.property.SimpleStringProperty;
 

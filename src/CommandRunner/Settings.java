@@ -1,6 +1,6 @@
 package CommandRunner;
 
-import CommandRunner.gui.CommandTableRow;
+import CommandRunner.gui.commandtable.CommandTableRow;
 import javafx.scene.control.TreeItem;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -11,7 +11,6 @@ import java.io.FileWriter;
 import static CommandRunner.JsonConverter.appendNodeHierarchyToJSON;
 
 public class Settings {
-
     public enum SaveOnExit {
         ASK,
         SAVE,
@@ -58,27 +57,20 @@ public class Settings {
         }
     }
 
-    private void load(boolean onlyCommands) {
+    void load() {
         if (SAVE_FILE.exists()) {
             try {
                 final String settingsString = JSONFileReader.readJsonObjectFromFile(SAVE_FILE);
                 JSONObject settingsObject = JsonConverter.convertFromJSONToObject(settingsString);
 
                 setRoot(JSONFileReader.createNode(settingsObject.getJSONObject(COMMANDS)));
-                if (!onlyCommands) {
                     haltOnError = settingsObject.getBoolean(HALT_ON_ERROR);
                     confirmNonemptyDelete = settingsObject.getBoolean(CONFIRM_NONEMPTY_DELETE);
                     saveOnExit = SaveOnExit.valueOf(settingsObject.getString(SAVE_ON_EXIT));
-                }
             } catch (JSONException e) {
                 e.printStackTrace();
             }
         }
-    }
-
-
-    void load() {
-        load(false);
     }
 
     public void setHaltOnError(boolean halt) {
@@ -111,5 +103,10 @@ public class Settings {
 
     TreeItem<CommandTableRow> getRoot() {
         return root;
+    }
+
+    boolean hasChangesSinceLastSave() {
+        // TODO
+        return false;
     }
 }

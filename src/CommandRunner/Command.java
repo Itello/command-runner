@@ -6,11 +6,10 @@ import javafx.application.Platform;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.InputStreamReader;
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-public class Command implements Serializable {
+public class Command {
 
     private String commandNameAndArguments;
     private String commandDirectory;
@@ -26,6 +25,7 @@ public class Command implements Serializable {
         this.commandDirectory = commandDirectory;
         this.commandComment = comment;
         commandListeners = new ArrayList<>();
+        commandStatus = CommandStatus.IDLE;
     }
 
     public Command copy() {
@@ -60,7 +60,7 @@ public class Command implements Serializable {
         commandListeners.add(listener);
     }
 
-    public void execute() {
+    void execute() {
         try {
             ProcessBuilder builder = new ProcessBuilder(commandNameAndArguments.split(" "))
                     .redirectErrorStream(true);
@@ -96,6 +96,7 @@ public class Command implements Serializable {
         } finally {
             Platform.runLater(
                     () -> {
+                        // TODO: concurrent modification exception if spammed, even though it's run later
                         commandListeners.forEach(listener -> listener.commandExecuted(this));
                         commandListeners.clear();
                     }
@@ -103,17 +104,13 @@ public class Command implements Serializable {
         }
     }
 
-    public void kill() {
+    void kill() {
         // Does not always kill. Need JNA for that.
         process.destroyForcibly();
     }
 
     public CommandStatus getCommandStatus() {
         return commandStatus;
-    }
-
-    public void setCommandStatus(CommandStatus commandStatus) {
-        this.commandStatus = commandStatus;
     }
 
     public void setParentCommandDirectory(String parentCommandDirectory) {

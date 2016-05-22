@@ -1,23 +1,22 @@
 package CommandRunner.gui.fxml;
 
-import CommandRunner.*;
-import CommandRunner.gui.*;
+import CommandRunner.Command;
+import CommandRunner.CommandRunner;
+import CommandRunner.JSONFileReader;
+import CommandRunner.JsonConverter;
+import CommandRunner.gui.commandqueuetree.CommandQueueTreeController;
+import CommandRunner.gui.commandqueuetree.CommandQueueTreeRow;
+import CommandRunner.gui.commandtable.*;
 import javafx.application.Platform;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.event.Event;
 import javafx.fxml.FXML;
-import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
-import javafx.scene.Parent;
 import javafx.scene.control.*;
-import javafx.scene.control.cell.TextFieldTreeTableCell;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.*;
-import javafx.scene.layout.FlowPane;
-import javafx.scene.layout.GridPane;
-import javafx.util.converter.DefaultStringConverter;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -29,8 +28,13 @@ import java.net.URL;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static CommandRunner.gui.commandtable.CommandTableRowTreeItemListManipulator.getFlatTreeItemList;
+
 @SuppressWarnings("UnusedDeclaration")
-public class GUIController implements Initializable, CommandQueueListener, CommandListener {
+public class MainController implements Initializable {
+
+    @FXML
+    public TreeView<CommandQueueTreeRow> commandQueueTreeView;
 
     @FXML
     private TreeTableView<CommandTableRow> commandTable;
@@ -51,45 +55,30 @@ public class GUIController implements Initializable, CommandQueueListener, Comma
     private MenuBar menuBar;
 
     @FXML
-    private FlowPane addCommandPane;
-
-    @FXML
     private TextArea commandOutputArea;
-
-    @FXML
-    private GridPane progressPane;
-
-    @FXML
-    private ProgressBar progressBar;
-
-    @FXML
-    private Label commandsRunningLabel;
-
-    private CommandController activeCommandController;
-
-    private CommandQueue commandQueue;
-
-    private int commandsToRun;
-
-    private Command lastCommandStarted;
 
     private int dragStartIndex;
 
-    private final Image folderIcon = new Image("png/folder.png");
+    private static final Image FOLDER_ICON = new Image("png/folder.png");
+    private static final Image COMMAND_ICON = new Image("png/command.png");
 
+    // todo: don't need this when changes are based on file load vs current
     private int changesSinceLastSave = 0;
 
-    @FXML
-    private Button addButton;
+    private CommandQueueTreeController commandQueueTreeController;
+
+    private CommandTableController commandTableController;
 
     @Override
     public void initialize(URL fxmlFileLocation, ResourceBundle resources) {
-        assert commandTable != null : "fx:id=\"commandTable\" was not injected: check FXML file 'gui.fxml'.";
+        assert commandTable != null : "fx:id=\"commandTable\" was not injected: check FXML file 'main .fxml'.";
 
+        // todo move all Table stuff to new class in commandTable package
         commandTable.addEventFilter(KeyEvent.KEY_PRESSED, this::tableKeyPressed);
         commandTable.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
 
         commandColumn.setCellValueFactory(cellData -> cellData.getValue().getValue().commandNameAndArgumentsProperty());
+
         statusColumn.setCellValueFactory(cellData -> cellData.getValue().getValue().commandStatusProperty());
         commentColumn.setCellValueFactory(cellData -> cellData.getValue().getValue().commandCommentProperty());
         directoryColumn.setCellValueFactory(cellData -> cellData.getValue().getValue().commandDirectoryProperty());
@@ -207,9 +196,10 @@ public class GUIController implements Initializable, CommandQueueListener, Comma
                 }
         );
 
-        commandQueue = new CommandQueue(this);
-        changeToAddCommandPanel(null);
-        showProgressPane(false);
+//        changeToAddCommandPanel(null);
+//        showProgressPane(false);
+
+        commandQueueTreeController = new CommandQueueTreeController(commandQueueTreeView, commandOutputArea);
 
         CommandRunner.getInstance().controllerLoaded(this);
     }
@@ -324,21 +314,8 @@ public class GUIController implements Initializable, CommandQueueListener, Comma
         column.setGraphic(directoryLabel);
     }
 
-    private TextFieldTreeTableCell<CommandTableRow, String> getTooltipTextFieldTreeTableCell() {
-        return new TextFieldTreeTableCell<CommandTableRow, String>(new DefaultStringConverter()) {
-
-            @Override
-            public void updateItem(String item, boolean empty) {
-                super.updateItem(item, empty);
-                if (empty) {
-                    setText(null);
-                    setTooltip(null);
-                } else {
-                    setText(item);
-                    setTooltip(new Tooltip(item));
-                }
-            }
-        };
+    private TreeTableCell<CommandTableRow, String> getTooltipTextFieldTreeTableCell() {
+        return new CommandTableCell();
     }
 
     @FXML
@@ -370,9 +347,7 @@ public class GUIController implements Initializable, CommandQueueListener, Comma
 
         commandTable.getSelectionModel().clearSelection();
         parent.getChildren().add(moveToIndex, group);
-
-        commandTable.edit(commandTable.getRow(group), commandColumn);
-        commandTable.focusModelProperty().get().focus(commandTable.getRow(group), commandColumn);
+        editRow(commandTable.getRow(group));
 
         changesSinceLastSave++;
     }
@@ -420,37 +395,40 @@ public class GUIController implements Initializable, CommandQueueListener, Comma
     }
 
     @FXML
-    private void changeToAddCommandPanel(ActionEvent event) {
-        changeAddCommandPanelTo(CommandRunner.getInstance().getCommandFXML());
+    private void addCommandTableRow(ActionEvent event) {
+        TreeItem<CommandTableRow> treeItem = new TreeItem<>(
+                new CommandTableCommandRow(
+                        new Command("", "", "")
+                )
+        );
+
+
+        commandTable.getRoot().getChildren().add(treeItem);
+        fixGraphic(treeItem);
+        editRow(commandTable.getRow(treeItem));
+        changesSinceLastSave++;
     }
 
-    private void changeAddCommandPanelTo(FXMLLoader loader) {
+    private void editRow(int row) {
+        // HACK: javafx is stupid
+        sleep(10);
+        Platform.runLater(() -> commandTable.edit(row, commandColumn));
+    }
+
+    private void sleep(int millis) {
         try {
-            addCommandPane.getChildren().setAll((Parent) loader.load());
-        } catch (IOException e) {
+            Thread.sleep(millis);
+        } catch (InterruptedException e) {
             e.printStackTrace();
         }
-        activeCommandController = loader.getController();
-    }
-
-    @FXML
-    private void addCommandTableRow(ActionEvent event) {
-        commandTable.getRoot().getChildren().add(
-                new TreeItem<>(
-                        new CommandTableCommandRow(
-                                new Command(
-                                        activeCommandController.getCommandDirectory(),
-                                        activeCommandController.getCommandNameAndArguments(),
-                                        ""
-                                )
-                        ))
-        );
-        changesSinceLastSave++;
     }
 
     @FXML
     private void runSelected(Event event) {
-        runCommandTreeItems(getSelectedItems());
+        ObservableList<TreeItem<CommandTableRow>> selectedItems = getSelectedItems();
+        if (!selectedItems.isEmpty()) {
+            runCommandTreeItems(selectedItems);
+        }
     }
 
     @FXML
@@ -458,70 +436,8 @@ public class GUIController implements Initializable, CommandQueueListener, Comma
         runCommandTreeItems(getFlatTreeItemList(commandTable.getRoot()));
     }
 
-    public void runAllCommandsWithComment(String comment, TreeItem<CommandTableRow> root) {
-        if (comment == null || comment.equals("")) {
-            return;
-        }
-
-        final List<TreeItem<CommandTableRow>> all = getFlatTreeItemList(root);
-        final List<TreeItem<CommandTableRow>> commandsWithComment = new ArrayList<>();
-        for (final TreeItem<CommandTableRow> commandItem : all) {
-            if (commandItem.getValue().commandCommentProperty().getValue().equals(comment)) {
-                commandsWithComment.add(commandItem);
-            }
-        }
-
-        runCommandTreeItems(commandsWithComment);
-    }
-
     private void runCommandTreeItems(List<TreeItem<CommandTableRow>> treeItemsToRun) {
-        List<CommandTableCommandRow> commandTableRowsToRun = new ArrayList<>();
-        treeItemsToRun.forEach(item -> addAllCommandRowsForTreeItem(item, commandTableRowsToRun));
-        if (commandQueue == null) {
-            commandQueue = new CommandQueue(CommandRunner.getInstance());
-        }
-
-        commandQueue.setCommands(
-                commandTableRowsToRun.stream()
-                        .map(CommandTableCommandRow::getCommand)
-                        .collect(Collectors.toList())
-        );
-
-        if (commandTable != null) {
-            commandTable.getSelectionModel().clearSelection();
-        }
-
-        commandQueue.start();
-    }
-
-    private void addAllCommandRowsForTreeItem(TreeItem<CommandTableRow> item, List<CommandTableCommandRow> commandRows) {
-        CommandTableRow row = item.getValue();
-
-        if (row instanceof CommandTableCommandRow) {
-            if (commandRows.contains(row)) {
-                return;
-            }
-
-            CommandTableCommandRow commandRow = (CommandTableCommandRow) row;
-            final Command command = commandRow.getCommand();
-            command.setCommandStatus(CommandStatus.IDLE);
-            commandRows.add(commandRow);
-
-            TreeItem<CommandTableRow> parentItem = item.getParent();
-            while (parentItem != null) {
-                final String parentCommandDirectory = parentItem.getValue().commandDirectoryProperty().getValue();
-                if (!parentCommandDirectory.isEmpty()) {
-                    command.setParentCommandDirectory(parentCommandDirectory);
-                    break;
-                }
-
-                parentItem = parentItem.getParent();
-            }
-        } else if (row instanceof CommandTableGroupRow) {
-            item.getChildren().forEach(child -> addAllCommandRowsForTreeItem(child, commandRows));
-        } else {
-            throw new UnsupportedOperationException("unidentified row");
-        }
+        CommandRunner.getInstance().runCommandTreeItems(treeItemsToRun, commandQueueTreeController);
     }
 
     @FXML
@@ -567,70 +483,24 @@ public class GUIController implements Initializable, CommandQueueListener, Comma
         }
     }
 
-    private void showProgressPane(boolean show) {
-        addCommandPane.setVisible(!show);
-        progressPane.setVisible(show);
-        commandTable.setDisable(show);
-        addButton.setDisable(show);
-        addButton.setVisible(!show);
-        menuBar.setDisable(show);
-    }
-
-    @Override
-    public void commandQueueStarted(int items) {
-        commandOutputArea.clear();
-        showProgressPane(true);
-        commandsToRun = items;
-    }
-
-    @Override
-    public void commandQueueFinished() {
-        showProgressPane(false);
-        changeToAddCommandPanel(null);
-    }
-
-    @Override
-    public void commandQueueIsProcessing(Command command, int itemsLeft) {
-        command.setCommandStatus(CommandStatus.RUNNING);
-        findRowForCommand(command).updateCommandStatus();
-        progressBar.setProgress((double) (commandsToRun - itemsLeft + 1) / (double) commandsToRun);
-        commandsRunningLabel.setText("Running (" + (commandsToRun - itemsLeft + 1) + "/" + commandsToRun + ")");
-        lastCommandStarted = command;
-        command.addCommandListener(this);
-        commandOutputArea.appendText("-------  executing... " + command.getCommandNameAndArguments() + "  -------\n");
-    }
-
-    @Override
-    public void commandExecuted(Command command) {
-        findRowForCommand(command).updateCommandStatus();
-        updateGroupStatuses(commandTable.getRoot());
-        commandOutputArea.appendText("\n");
-    }
-
-    @Override
-    public void commandOutput(Command command, String text) {
-        commandOutputArea.appendText(text + "\n");
-    }
-
     @FXML
     private void save(ActionEvent event) {
         save();
     }
 
-    public void save() {
+    private void save() {
         CommandRunner.getInstance().save(getRoot());
         changesSinceLastSave = 0;
     }
 
     @FXML
     private void stop(ActionEvent event) {
-        commandQueue.stopWhenCurrentCommandFinishes();
+        commandQueueTreeController.stopSelected();
     }
 
     @FXML
     private void kill(ActionEvent event) {
-        commandQueue.kill();
-        findRowForCommand(lastCommandStarted).updateCommandStatus();
+        commandQueueTreeController.killSelected();
     }
 
     @FXML
@@ -647,34 +517,17 @@ public class GUIController implements Initializable, CommandQueueListener, Comma
                 .get(0);
     }
 
-    private List<TreeItem<CommandTableRow>> getFlatTreeItemList(TreeItem<CommandTableRow> root) {
-        List<TreeItem<CommandTableRow>> items = new ArrayList<>();
-        TreeItem<CommandTableRow> node = root;
-
-        Deque<TreeItem<CommandTableRow>> rows = new ArrayDeque<>();
-        rows.push(node);
-
-        while (!rows.isEmpty()) {
-            node = rows.removeFirst();
-            final TreeItem<CommandTableRow> parent = node;
-            node.getChildren().forEach(rows::addLast);
-            items.add(node);
-        }
-
-        return items;
-    }
-
     private TreeItem<CommandTableRow> getRoot() {
         return commandTable.getRoot();
     }
 
     public void setRoot(TreeItem<CommandTableRow> commandTreeNode) {
-        TreeItem<CommandTableRow> commandTreeNode1 = commandTreeNode;
-        if (commandTreeNode1 == null) {
-            commandTreeNode1 = new TreeItem<>(new CommandTableGroupRow("root", "", ""));
+        if (commandTreeNode == null) {
+            commandTreeNode = new TreeItem<>(new CommandTableGroupRow("root", "", ""));
         }
 
-        commandTable.setRoot(copyTreeItem(commandTreeNode1));
+        commandTable.setRoot(commandTreeNode);
+        fixGraphicHierarchically(commandTreeNode);
         commandTable.getRoot().setExpanded(true);
         commandTable.setShowRoot(false);
 
@@ -713,15 +566,29 @@ public class GUIController implements Initializable, CommandQueueListener, Comma
 
         TreeItem<CommandTableRow> createdTreeItem = new TreeItem<>(createdRow);
 
-        if (createdRow instanceof CommandTableGroupRow) {
-            createdTreeItem.setGraphic(new ImageView(folderIcon));
-        }
+        fixGraphic(createdTreeItem);
 
         if (!treeItem.getChildren().isEmpty()) {
             treeItem.getChildren().forEach(child -> createdTreeItem.getChildren().add(copyTreeItem(child)));
         }
 
         return createdTreeItem;
+    }
+
+    private void fixGraphic(TreeItem<CommandTableRow> treeItem) {
+        if (treeItem.getValue() instanceof CommandTableGroupRow) {
+            treeItem.setGraphic(new ImageView(FOLDER_ICON));
+        } else if (treeItem.getValue() instanceof CommandTableCommandRow) {
+            treeItem.setGraphic(new ImageView(COMMAND_ICON));
+        }
+    }
+
+    private void fixGraphicHierarchically(TreeItem<CommandTableRow> treeItem) {
+        fixGraphic(treeItem);
+
+        if (!treeItem.getChildren().isEmpty()) {
+            treeItem.getChildren().forEach(this::fixGraphicHierarchically);
+        }
     }
 
     public boolean hasChangesSinceLastSave() {
