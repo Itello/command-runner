@@ -19,9 +19,10 @@ import javafx.scene.image.ImageView;
 import javafx.util.Duration;
 
 import java.util.Optional;
+import java.util.stream.Stream;
 
 public class CommandQueueTreeController implements CommandListener, CommandQueueListener {
-    private static final Image PAUSE_COMMAND_GRAPHIC = new Image("png/pause.png");
+    private static final Image IDLE_COMMAND_GRAPHIC = new Image("png/pause.png");
     private static final Image RUNNING_COMMAND_GRAPHIC = new Image("png/running.png");
     private static final Image DONE_COMMAND_GRAPHIC = new Image("png/done.png");
     private static final Image FAIL_COMMAND_GRAPHIC = new Image("png/fail.png");
@@ -68,23 +69,26 @@ public class CommandQueueTreeController implements CommandListener, CommandQueue
             String name = "" + commandQueueTreeView.getRoot().getChildren().size();
             treeItem = new TreeItem<>(new CommandQueueTreeCommandQueueRow(commandQueue, name));
             commandQueue.getCommands().forEach(command -> {
-                TreeItem<CommandQueueTreeRow> e = new TreeItem<>(new CommandQueueTreeCommandRow(command, commandQueue));
-                setItemGraphic(e);
-                treeItem.getChildren().add(e);
+                TreeItem<CommandQueueTreeRow> child = new TreeItem<>(new CommandQueueTreeCommandRow(command, commandQueue));
+                setItemGraphic(child, IDLE_COMMAND_GRAPHIC);
+                treeItem.getChildren().add(child);
             });
+            treeItem.setExpanded(true);
         } else {
             Command command = commandQueue.getCommands().get(0);
             treeItem = new TreeItem<>(new CommandQueueTreeCommandRow(command, commandQueue));
         }
 
-        setItemGraphic(treeItem);
+        setItemGraphic(treeItem, RUNNING_COMMAND_GRAPHIC);
         commandQueueTreeView.getRoot().getChildren().add(0, treeItem);
         commandQueueTreeView.getSelectionModel().clearAndSelect(0);
     }
 
-    private void setItemGraphic(TreeItem<CommandQueueTreeRow> treeItem) {
-        ImageView imageView = new ImageView(RUNNING_COMMAND_GRAPHIC);
-        addRotation(imageView);
+    private void setItemGraphic(TreeItem<CommandQueueTreeRow> treeItem, Image image) {
+        ImageView imageView = new ImageView(image);
+        if (image == RUNNING_COMMAND_GRAPHIC) {
+            addRotation(imageView);
+        }
         treeItem.setGraphic(imageView);
     }
 
@@ -111,7 +115,7 @@ public class CommandQueueTreeController implements CommandListener, CommandQueue
                 treeItemForQueue.setGraphic(new ImageView(FAIL_COMMAND_GRAPHIC));
                 break;
             case IDLE:
-                treeItemForQueue.setGraphic(new ImageView(PAUSE_COMMAND_GRAPHIC));
+                treeItemForQueue.setGraphic(new ImageView(IDLE_COMMAND_GRAPHIC));
                 break;
             case RUNNING:
             default:
@@ -135,6 +139,10 @@ public class CommandQueueTreeController implements CommandListener, CommandQueue
 
     @Override
     public void commandQueueIsProcessing(Command command) {
+        getTreeItemForCommand(commandQueueTreeView.getRoot(), command).ifPresent(treeItem -> {
+            setItemGraphic(treeItem, RUNNING_COMMAND_GRAPHIC);
+        });
+
         command.addCommandListener(this);
     }
 
@@ -162,15 +170,45 @@ public class CommandQueueTreeController implements CommandListener, CommandQueue
 
     @Override
     public void commandOutput(Command command, String text) {
-        // TODO: only if command or parent selected...
-        commandOutputArea.appendText(text + "\n");
+        if (isCommandSelected(command)) {
+            commandOutputArea.appendText(text + "\n");
+        }
+    }
+
+    private boolean isCommandSelected(Command command) {
+        return selectedAndRunningCommandRows().anyMatch(row -> row.getCommand().equals(command)) ||
+                selectedAndRunningCommandQueueRows().anyMatch(row -> row.getCommandQueue().getCommands().contains(command));
+    }
+
+    private Stream<CommandQueueTreeCommandRow> selectedAndRunningCommandRows() {
+        return commandQueueTreeView.getSelectionModel().getSelectedItems().stream()
+                .filter(item -> item != null)
+                .map(TreeItem::getValue)
+                .filter(row -> row instanceof CommandQueueTreeCommandRow)
+                .map(row -> (CommandQueueTreeCommandRow) row)
+                .filter(row -> row.getCommand().getCommandStatus().equals(CommandStatus.RUNNING));
+    }
+
+    private Stream<CommandQueueTreeCommandQueueRow> selectedAndRunningCommandQueueRows() {
+        return commandQueueTreeView.getSelectionModel().getSelectedItems().stream()
+                .filter(item -> item != null)
+                .map(TreeItem::getValue)
+                .filter(row -> row instanceof CommandQueueTreeCommandQueueRow)
+                .map(row -> (CommandQueueTreeCommandQueueRow) row)
+                .filter(row -> row.getCommandQueue().getCommandStatus().equals(CommandStatus.RUNNING));
     }
 
     public void killSelected() {
-        // TODO: go through selected command queues and find any started tasks and update their statuses
+        selectedAndRunningCommandRows().forEach(row -> row.getCommand().kill());
+        selectedAndRunningCommandQueueRows().forEach(row -> row.getCommandQueue().kill());
     }
 
     public void stopSelected() {
-        // TODO: stop selected
+        selectedAndRunningCommandQueueRows().forEach(row -> row.getCommandQueue().stopWhenCurrentCommandFinishes());
+    }
+
+    public void clearQueue() {
+        commandQueueTreeView.getRoot().getChildren().clear();
+        commandOutputArea.clear();
     }
 }

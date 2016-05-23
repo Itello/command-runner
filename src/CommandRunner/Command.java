@@ -70,6 +70,7 @@ public class Command {
                 builder.directory(new File(parentCommandDirectory));
             }
 
+            commandStatus = CommandStatus.RUNNING;
             process = builder.start();
             InputStreamReader inputStreamReader = new InputStreamReader(process.getInputStream());
             BufferedReader bufferedReader = new BufferedReader(inputStreamReader);
@@ -96,7 +97,6 @@ public class Command {
         } finally {
             Platform.runLater(
                     () -> {
-                        // TODO: concurrent modification exception if spammed, even though it's run later
                         commandListeners.forEach(listener -> listener.commandExecuted(this));
                         commandListeners.clear();
                     }
@@ -104,9 +104,17 @@ public class Command {
         }
     }
 
-    void kill() {
-        // Does not always kill. Need JNA for that.
+    public void kill() {
+        if (process == null) {
+            return;
+        }
+
+        // TODO: Does not always kill. Need JNA for that.
         process.destroyForcibly();
+        if (!process.isAlive()) {
+            commandStatus = CommandStatus.IDLE;
+            commandListeners.forEach(listener -> listener.commandExecuted(this));
+        }
     }
 
     public CommandStatus getCommandStatus() {

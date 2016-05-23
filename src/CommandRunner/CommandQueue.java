@@ -3,7 +3,6 @@ package CommandRunner;
 import CommandRunner.gui.CommandStatus;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 public class CommandQueue implements CommandListener {
 
@@ -53,9 +52,8 @@ public class CommandQueue implements CommandListener {
     }
 
     public void kill() {
+        stopWhenCurrentCommandFinishes();
         getCurrentCommand().ifPresent(command -> command.kill());
-        commands.clear();
-        setStoppedState();
     }
 
     private Optional<Command> getCurrentCommand() {
@@ -68,17 +66,16 @@ public class CommandQueue implements CommandListener {
 
     private void setStoppedState() {
         status = CommandQueueStatus.Stopped;
-        listeners.forEach(listener -> listener.commandQueueFinished(this));
     }
 
     private void executeNextCommand() {
         Optional<Command> command = getCurrentCommand();
         if (command.isPresent()) {
             listeners.forEach(listener -> listener.commandQueueIsProcessing(command.get()));
-            commandToRunIndex++;
             new Thread(command.get()::execute).start();
         } else {
             setStoppedState();
+            listeners.forEach(listener -> listener.commandQueueFinished(this));
         }
     }
 
@@ -87,11 +84,14 @@ public class CommandQueue implements CommandListener {
         if (status == CommandQueueStatus.Running) {
             if (command.getCommandStatus().equals(CommandStatus.FAIL) && CommandRunner.getInstance().getSettings().getHaltOnError()) {
                 setStoppedState();
+                listeners.forEach(listener -> listener.commandQueueFinished(this));
             } else {
+                commandToRunIndex++;
                 executeNextCommand();
             }
         } else if (status == CommandQueueStatus.Stopping) {
             setStoppedState();
+            listeners.forEach(listener -> listener.commandQueueFinished(this));
         }
     }
 
@@ -124,21 +124,21 @@ public class CommandQueue implements CommandListener {
         return Collections.unmodifiableList(commands);
     }
 
-    public List<String> getCommandNameAndArguments() {
-        return commands.stream()
-                .map(command -> command.getCommandNameAndArguments())
-                .collect(Collectors.toList());
-    }
-
     public CommandStatus getCommandStatus() {
         return commands.stream()
                 .map(Command::getCommandStatus)
                 .sorted((s1, s2) -> {
+                    boolean firstRunning = s1.equals(CommandStatus.RUNNING);
+                    boolean secondRunning = s2.equals(CommandStatus.RUNNING);
                     boolean firstFail = s1.equals(CommandStatus.FAIL);
                     boolean firstIdle = s1.equals(CommandStatus.IDLE);
-                    boolean secondFail = s1.equals(CommandStatus.FAIL);
-                    boolean secondIdle = s1.equals(CommandStatus.IDLE);
-                    if (firstFail && !secondFail) {
+                    boolean secondFail = s2.equals(CommandStatus.FAIL);
+                    boolean secondIdle = s2.equals(CommandStatus.IDLE);
+                    if (firstRunning && !secondRunning) {
+                        return -1;
+                    } else if (secondRunning && !firstRunning) {
+                        return 1;
+                    } else if (firstFail && !secondFail) {
                         return -1;
                     } else if (secondFail && !firstFail) {
                         return 1;
