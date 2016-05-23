@@ -43,9 +43,6 @@ public class MainController implements Initializable {
     private TreeTableColumn<CommandTableRow, String> commandColumn;
 
     @FXML
-    private TreeTableColumn<CommandTableRow, String> statusColumn;
-
-    @FXML
     private TreeTableColumn<CommandTableRow, String> directoryColumn;
 
     @FXML
@@ -79,7 +76,6 @@ public class MainController implements Initializable {
 
         commandColumn.setCellValueFactory(cellData -> cellData.getValue().getValue().commandNameAndArgumentsProperty());
 
-        statusColumn.setCellValueFactory(cellData -> cellData.getValue().getValue().commandStatusProperty());
         commentColumn.setCellValueFactory(cellData -> cellData.getValue().getValue().commandCommentProperty());
         directoryColumn.setCellValueFactory(cellData -> cellData.getValue().getValue().commandDirectoryProperty());
 
@@ -593,5 +589,25 @@ public class MainController implements Initializable {
 
     public boolean hasChangesSinceLastSave() {
         return changesSinceLastSave != 0;
+    }
+
+    public void close(ActionEvent event) {
+        System.exit(0);
+    }
+
+    public void deleteSelectedFromTable(ActionEvent event) {
+        removeCommandTableRow(event);
+    }
+
+    public void resetLayout(ActionEvent event) {
+        // TODO
+    }
+
+    public void about(ActionEvent event) throws IOException {
+        CommandRunner.getInstance().addAboutStage();
+    }
+
+    public void clearQueue(ActionEvent event) {
+        // TODO
     }
 }

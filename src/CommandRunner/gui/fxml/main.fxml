@@ -17,119 +17,76 @@
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
-<?import javafx.scene.text.Font?>
 
-<VBox maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="600.0"
-      prefWidth="800.0" xmlns="http://javafx.com/javafx/8.0.65" xmlns:fx="http://javafx.com/fxml/1"
-      fx:controller="CommandRunner.gui.fxml.MainController">
+<VBox maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="768.0" prefWidth="1024.0" xmlns="http://javafx.com/javafx/8.0.60" xmlns:fx="http://javafx.com/fxml/1" fx:controller="CommandRunner.gui.fxml.MainController">
     <MenuBar fx:id="menuBar">
         <Menu mnemonicParsing="false" text="File">
-            <MenuItem mnemonicParsing="false" text="Save"/>
-            <MenuItem mnemonicParsing="false" text="Close"/>
+            <MenuItem mnemonicParsing="false" onAction="#save" text="Save" />
+            <MenuItem mnemonicParsing="false" onAction="#close" text="Close" />
         </Menu>
         <Menu mnemonicParsing="false" text="Edit">
-            <MenuItem mnemonicParsing="false" text="Add new..."/>
-            <MenuItem mnemonicParsing="false" text="Create group with selected"/>
-            <MenuItem mnemonicParsing="false" text="Delete selected"/>
-            <MenuItem mnemonicParsing="false" text="Settings..."/>
+            <MenuItem mnemonicParsing="false" onAction="#addCommandTableRow" text="Add new" />
+            <MenuItem mnemonicParsing="false" onAction="#addSelectedItemsToGroup" text="Create group with selected" />
+            <MenuItem mnemonicParsing="false" onAction="#deleteSelectedFromTable" text="Delete selected" />
+            <MenuItem mnemonicParsing="false" onAction="#settings" text="Settings..." />
         </Menu>
         <Menu mnemonicParsing="false" text="View">
-            <MenuItem mnemonicParsing="false" text="Reset to default view"/>
+            <MenuItem mnemonicParsing="false" onAction="#resetLayout" text="Reset layout to default" />
         </Menu>
         <Menu mnemonicParsing="false" text="Help">
-            <MenuItem mnemonicParsing="false" text="About"/>
+            <MenuItem mnemonicParsing="false" onAction="#about" text="About" />
         </Menu>
     </MenuBar>
     <SplitPane dividerPositions="0.75" orientation="VERTICAL" VBox.vgrow="ALWAYS">
         <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="100.0" prefWidth="160.0">
-            <SplitPane dividerPositions="0.6792452830188679" AnchorPane.bottomAnchor="0.0"
-                       AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+            <SplitPane dividerPositions="0.8284313725490197" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
                 <AnchorPane minHeight="0.0" minWidth="0.0">
-                    <VBox layoutX="88.0" layoutY="-21.0" prefHeight="200.0" prefWidth="100.0"
-                          AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0"
-                          AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                    <VBox layoutX="88.0" layoutY="-21.0" prefHeight="200.0" prefWidth="100.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
                         <ButtonBar prefHeight="30.0" prefWidth="200.0" VBox.vgrow="NEVER">
                             <buttons>
-                                <HBox alignment="CENTER" maxWidth="1.7976931348623157E308"
-                                      minWidth="0.0" prefHeight="30.0" prefWidth="9999.0">
-                                    <Separator minWidth="0.0" visible="false"
-                                               HBox.hgrow="ALWAYS"/>
-                                    <Button alignment="CENTER" contentDisplay="CENTER"
-                                            minWidth="30.0" mnemonicParsing="false" text="&gt;"
-                                            textAlignment="CENTER">
+                                <HBox alignment="CENTER" maxWidth="1.7976931348623157E308" minWidth="0.0" prefHeight="30.0" prefWidth="9999.0">
+                                    <Separator minWidth="0.0" visible="false" HBox.hgrow="ALWAYS" />
+                                    <Button alignment="CENTER" contentDisplay="CENTER" minWidth="30.0" mnemonicParsing="false" onAction="#runSelected" text="&gt;" textAlignment="CENTER">
                                         <HBox.margin>
-                                            <Insets left="5.0" right="5.0"/>
+                                            <Insets left="5.0" right="5.0" />
                                         </HBox.margin>
                                     </Button>
-                                    <Button alignment="CENTER" contentDisplay="CENTER"
-                                            depthTest="DISABLE" minWidth="30.0"
-                                            mnemonicParsing="false"
-                                            onAction="#addCommandTableRow" text="+">
+                                    <Button alignment="CENTER" contentDisplay="CENTER" depthTest="DISABLE" minWidth="30.0" mnemonicParsing="false" onAction="#addCommandTableRow" text="+">
                                         <HBox.margin>
-                                            <Insets left="5.0" right="5.0"/>
+                                            <Insets left="5.0" right="5.0" />
                                         </HBox.margin>
                                     </Button>
-                                    <Button alignment="CENTER" contentDisplay="CENTER"
-                                            depthTest="DISABLE" minWidth="30.0"
-                                            mnemonicParsing="false" text="G">
+                                    <Button alignment="CENTER" contentDisplay="CENTER" depthTest="DISABLE" minWidth="30.0" mnemonicParsing="false" onAction="#addSelectedItemsToGroup" text="G">
                                         <HBox.margin>
-                                            <Insets left="5.0" right="5.0"/>
+                                            <Insets left="5.0" right="5.0" />
                                         </HBox.margin>
                                     </Button>
-                                    <Button alignment="CENTER" contentDisplay="CENTER"
-                                            depthTest="DISABLE" minWidth="30.0"
-                                            mnemonicParsing="false" text="x">
+                                    <Button alignment="CENTER" contentDisplay="CENTER" depthTest="DISABLE" minWidth="30.0" mnemonicParsing="false" onAction="#deleteSelectedFromTable" text="x">
                                         <HBox.margin>
-                                            <Insets left="5.0" right="5.0"/>
+                                            <Insets left="5.0" right="5.0" />
                                         </HBox.margin>
                                     </Button>
-                                    <Separator minWidth="0.0" visible="false"
-                                               HBox.hgrow="ALWAYS"/>
+                                    <Separator minWidth="0.0" visible="false" HBox.hgrow="ALWAYS" />
                                 </HBox>
                             </buttons>
                         </ButtonBar>
                         <AnchorPane minWidth="0.0" VBox.vgrow="ALWAYS">
                             <VBox.margin>
-                                <Insets/>
+                                <Insets />
                             </VBox.margin>
-                            <TreeTableView fx:id="commandTable" editable="true"
-                                           AnchorPane.bottomAnchor="0.0"
-                                           AnchorPane.leftAnchor="0.0"
-                                           AnchorPane.rightAnchor="0.0"
-                                           AnchorPane.topAnchor="0.0">
+                            <TreeTableView fx:id="commandTable" editable="true" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
                                 <columns>
-                                    <TreeTableColumn fx:id="commandColumn"
-                                                     maxWidth="1.7976931348623157E308"
-                                                     minWidth="0.0" prefWidth="392.0"
-                                                     text="Command"/>
-                                    <TreeTableColumn fx:id="directoryColumn"
-                                                     maxWidth="1.7976931348623157E308"
-                                                     minWidth="0.0" prefWidth="72.0"
-                                                     text="Directory"/>
-                                    <TreeTableColumn fx:id="commentColumn"
-                                                     maxWidth="1.7976931348623157E308"
-                                                     minWidth="0.0" prefWidth="73.0"
-                                                     text="Comment"/>
-                                    <TreeTableColumn fx:id="statusColumn"
-                                                     maxWidth="1.7976931348623157E308"
-                                                     minWidth="0.0" prefWidth="0.0"
-                                                     text="Status"/>
+                                    <TreeTableColumn fx:id="commandColumn" maxWidth="1.7976931348623157E308" minWidth="0.0" prefWidth="498.0" text="Command" />
+                                    <TreeTableColumn fx:id="directoryColumn" maxWidth="1.7976931348623157E308" minWidth="0.0" prefWidth="242.0" text="Directory" />
+                                    <TreeTableColumn fx:id="commentColumn" maxWidth="1.7976931348623157E308" minWidth="0.0" prefWidth="96.0" text="Comment" />
                                 </columns>
                                 <contextMenu>
                                     <ContextMenu>
                                         <items>
-                                            <MenuItem mnemonicParsing="false"
-                                                      onAction="#runSelected"
-                                                      text="Run selected"/>
-                                            <MenuItem mnemonicParsing="false"
-                                                      onAction="#runSelected"
-                                                      text="Add below selected"/>
-                                            <MenuItem mnemonicParsing="false"
-                                                      onAction="#addSelectedItemsToGroup"
-                                                      text="Create group for selected"/>
-                                            <MenuItem mnemonicParsing="false"
-                                                      onAction="#removeCommandTableRow"
-                                                      text="Delete selected"/>
+                                            <MenuItem mnemonicParsing="false" onAction="#runSelected" text="Run selected" />
+                                            <MenuItem mnemonicParsing="false" onAction="#runSelected" text="Add below selected" />
+                                            <MenuItem mnemonicParsing="false" onAction="#addSelectedItemsToGroup" text="Create group for selected" />
+                                            <MenuItem mnemonicParsing="false" onAction="#removeCommandTableRow" text="Delete selected" />
                                         </items>
                                     </ContextMenu>
                                 </contextMenu>
@@ -138,67 +95,41 @@
                     </VBox>
                 </AnchorPane>
                 <AnchorPane minHeight="0.0" minWidth="0.0">
-                    <VBox prefHeight="200.0" prefWidth="100.0" AnchorPane.bottomAnchor="0.0"
-                          AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0"
-                          AnchorPane.topAnchor="0.0">
-                        <ButtonBar buttonMinWidth="0.0" prefHeight="30.0" prefWidth="130.0"
-                                   VBox.vgrow="NEVER">
+                    <VBox prefHeight="200.0" prefWidth="100.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                        <ButtonBar buttonMinWidth="0.0" prefHeight="30.0" prefWidth="130.0" VBox.vgrow="NEVER">
                             <buttons>
-                                <HBox alignment="CENTER" maxWidth="1.7976931348623157E308"
-                                      minWidth="0.0" prefHeight="30.0" prefWidth="9999.0">
+                                <HBox alignment="CENTER" maxWidth="1.7976931348623157E308" minWidth="0.0" prefHeight="30.0" prefWidth="9999.0">
                                     <padding>
-                                        <Insets left="-5.0"/>
+                                        <Insets left="-5.0" />
                                     </padding>
-                                    <Button cancelButton="true" contentDisplay="CENTER"
-                                            depthTest="DISABLE" minWidth="20.0"
-                                            mnemonicParsing="false" text="►">
-                                        <font>
-                                            <Font name="Arial Black" size="12.0"/>
-                                        </font>
-                                    </Button>
-                                    <Separator minWidth="0.0" visible="false"
-                                               HBox.hgrow="ALWAYS"/>
-                                    <Button alignment="CENTER" contentDisplay="CENTER"
-                                            depthTest="DISABLE" minWidth="30.0"
-                                            mnemonicParsing="false" text="x">
+                                    <Separator minWidth="0.0" visible="false" HBox.hgrow="ALWAYS" />
+                                    <Button alignment="CENTER" contentDisplay="CENTER" depthTest="DISABLE" minWidth="30.0" mnemonicParsing="false" onAction="#kill" text="K">
                                         <HBox.margin>
-                                            <Insets left="5.0" right="5.0"/>
+                                            <Insets left="5.0" right="5.0" />
                                         </HBox.margin>
                                     </Button>
-                                    <Button alignment="CENTER" contentDisplay="CENTER"
-                                            depthTest="DISABLE" minWidth="30.0"
-                                            mnemonicParsing="false" text="x">
+                                    <Button alignment="CENTER" contentDisplay="CENTER" depthTest="DISABLE" minWidth="30.0" mnemonicParsing="false" onAction="#stop" text="S">
                                         <HBox.margin>
-                                            <Insets left="5.0" right="5.0"/>
+                                            <Insets left="5.0" right="5.0" />
                                         </HBox.margin>
                                     </Button>
-                                    <Button alignment="CENTER" contentDisplay="CENTER"
-                                            depthTest="DISABLE" minWidth="30.0"
-                                            mnemonicParsing="false" text="x">
+                                    <Button alignment="CENTER" contentDisplay="CENTER" depthTest="DISABLE" minWidth="30.0" mnemonicParsing="false" onAction="#clearQueue" text="C">
                                         <HBox.margin>
-                                            <Insets left="5.0" right="5.0"/>
+                                            <Insets left="5.0" right="5.0" />
                                         </HBox.margin>
                                     </Button>
-                                    <Separator minWidth="0.0" visible="false"
-                                               HBox.hgrow="ALWAYS"/>
+                                    <Separator minWidth="0.0" visible="false" HBox.hgrow="ALWAYS" />
                                 </HBox>
                             </buttons>
                         </ButtonBar>
-                        <TreeView fx:id="commandQueueTreeView" VBox.vgrow="ALWAYS"/>
+                        <TreeView fx:id="commandQueueTreeView" VBox.vgrow="ALWAYS" />
                     </VBox>
                 </AnchorPane>
             </SplitPane>
         </AnchorPane>
         <AnchorPane minHeight="0.0" minWidth="0.0">
-            <StackPane prefHeight="150.0" prefWidth="200.0" AnchorPane.bottomAnchor="0.0"
-                       AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
-                <TextArea fx:id="commandOutputArea" editable="false" minWidth="0.0" text="Program started"/>
-                <Button cancelButton="true" contentDisplay="CENTER" depthTest="DISABLE" minWidth="20.0"
-                        mnemonicParsing="false" text="▼" StackPane.alignment="TOP_RIGHT">
-                    <StackPane.margin>
-                        <Insets right="5.0"/>
-                    </StackPane.margin>
-                </Button>
+            <StackPane prefHeight="150.0" prefWidth="200.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                <TextArea fx:id="commandOutputArea" editable="false" minWidth="0.0" text="Program started" />
             </StackPane>
         </AnchorPane>
     </SplitPane>

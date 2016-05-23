@@ -25,9 +25,11 @@ import static CommandRunner.gui.commandtable.CommandTableRowTreeItemListManipula
 import static CommandRunner.gui.commandtable.CommandTableRowTreeItemListManipulator.getFlatTreeItemList;
 
 public class CommandRunner extends Application implements CommandQueueListener, CommandListener {
+    public static final String PROGRAM_TITLE = "Command Runner";
+    public static final String PROGRAM_VERSION = "0.2";
 
     private static final String SETTINGS_FXML = "gui/fxml/settings.fxml";
-    private static final String PROGRAM_TITLE = "Command Runner";
+    private static final String ABOUT_FXML = "gui/fxml/about.fxml";
 
     private static CommandRunner instance = null;
 
@@ -46,8 +48,8 @@ public class CommandRunner extends Application implements CommandQueueListener, 
         instance = this;
     }
 
-    private FXMLLoader getFXML() {
-        return new FXMLLoader(getClass().getResource(CommandRunner.SETTINGS_FXML));
+    private FXMLLoader getFXML(String fxml) {
+        return new FXMLLoader(getClass().getResource(fxml));
     }
 
     public static CommandRunner getInstance() {
@@ -121,7 +123,7 @@ public class CommandRunner extends Application implements CommandQueueListener, 
     }
 
     public void addSettingsStage() throws IOException {
-        FXMLLoader loader = getFXML();
+        FXMLLoader loader = getFXML(SETTINGS_FXML);
         Parent root = loader.load();
         Stage settingsStage = new Stage();
         settingsStage.setTitle("Settings");
@@ -215,5 +217,15 @@ public class CommandRunner extends Application implements CommandQueueListener, 
     @Override
     public void commandOutput(Command command, String text) {
         System.out.println(text);
+    }
+
+    public void addAboutStage() throws IOException {
+        FXMLLoader loader = getFXML(ABOUT_FXML);
+        Parent root = loader.load();
+        Stage settingsStage = new Stage();
+        settingsStage.setTitle("About");
+        settingsStage.getIcons().add(new Image("png/icon.png"));
+        settingsStage.setScene(createScene(root));
+        settingsStage.show();
     }
 }
