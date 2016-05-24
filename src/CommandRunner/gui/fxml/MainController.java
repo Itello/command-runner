@@ -1,7 +1,8 @@
 package CommandRunner.gui.fxml;
 
 import CommandRunner.CommandRunner;
-import CommandRunner.gui.DefaultLayout;
+import CommandRunner.gui.LayoutChangedListener;
+import CommandRunner.gui.WindowLayout;
 import CommandRunner.gui.commandqueuetree.CommandQueueTreeController;
 import CommandRunner.gui.commandqueuetree.CommandQueueTreeRow;
 import CommandRunner.gui.commandtable.CommandTableController;
@@ -17,9 +18,11 @@ import javafx.stage.WindowEvent;
 
 import java.io.IOException;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.ResourceBundle;
 
-import static CommandRunner.gui.DefaultLayout.*;
+import static CommandRunner.gui.WindowLayout.DEFAULT_LAYOUT;
 
 @SuppressWarnings("UnusedDeclaration")
 public class MainController implements Initializable {
@@ -42,33 +45,33 @@ public class MainController implements Initializable {
 
     private CommandQueueTreeController commandQueueTreeController;
     private CommandTableController commandTableController;
+    private List<LayoutChangedListener> layoutChangeListeners;
 
     @Override
     public void initialize(URL fxmlFileLocation, ResourceBundle resources) {
         assert commandTable != null : "fx:id=\"commandTable\" was not injected: check FXML file 'main .fxml'.";
-
-        commandTableController = new CommandTableController(commandQueueTreeView, commandTable, commandColumn, directoryColumn, commentColumn);
-
+        commandTableController = new CommandTableController(commandTable, commandColumn, directoryColumn, commentColumn);
         commandQueueTreeController = new CommandQueueTreeController(commandQueueTreeView, commandOutputArea);
-
         commandTable.addEventFilter(KeyEvent.KEY_PRESSED, this::tableKeyPressed);
 
+        layoutChangeListeners = new ArrayList<>();
         CommandRunner.getInstance().controllerLoaded(this);
     }
 
     @FXML
     private void addSelectedItemsToGroup(Event event) {
-        commandTableController.addSelectedItemsToGroup("Group");
+        // TODO: Bug, when on the last row and creating a group, group moves up one row
+        commandTableController.addSelectedItemsToGroup();
     }
 
     @FXML
     private void removeCommandTableRow(Event event) {
-        commandTableController.removeCommandTableRow(event);
+        commandTableController.removeCommandTableRow();
     }
 
     @FXML
     private void addCommandTableRow(ActionEvent event) {
-        commandTableController.addCommandTableRow(event);
+        commandTableController.addCommandTableRow();
     }
 
     @FXML
@@ -78,10 +81,6 @@ public class MainController implements Initializable {
 
     @FXML
     private void save(ActionEvent event) {
-        save();
-    }
-
-    private void save() {
         CommandRunner.getInstance().save(getRoot());
     }
 
@@ -123,19 +122,23 @@ public class MainController implements Initializable {
     }
 
     public void resetLayout(ActionEvent event) {
-
         Stage primaryStage = CommandRunner.getInstance().getPrimaryStage();
 
-        primaryStage.setWidth(WINDOW_WIDTH);
-        primaryStage.setHeight(WINDOW_HEIGHT);
+        primaryStage.setWidth(DEFAULT_LAYOUT.getWindowWidth());
+        primaryStage.setHeight(DEFAULT_LAYOUT.getWindowWidth());
         primaryStage.centerOnScreen();
 
-        horizontalSplitPane.setDividerPosition(0, HORIZONTAL_DIVIDER_POSITION);
-        verticalSplitPane.setDividerPosition(0, VERTICAL_DIVIDER_POSITION);
+        verticalSplitPane.setDividerPosition(0, DEFAULT_LAYOUT.getVerticalDividerPosition());
+        horizontalSplitPane.setDividerPosition(0, DEFAULT_LAYOUT.getHorizontalDividerPosition());
+        commandColumn.setPrefWidth(DEFAULT_LAYOUT.getTableCommandColumnWidth());
+        directoryColumn.setPrefWidth(DEFAULT_LAYOUT.getTableDirectoryColumnWidth());
+        commentColumn.setPrefWidth(DEFAULT_LAYOUT.getTableCommentColumnWidth());
 
-        commandColumn.setPrefWidth(TABLE_COMMAND_COLUMN_WIDTH);
-        commentColumn.setPrefWidth(TABLE_COMMENT_COLUMN_WIDTH);
-        directoryColumn.setPrefWidth(TABLE_DIRECTORY_COLUMN_WIDTH);
+        verticalSplitPaneChanged(DEFAULT_LAYOUT.getVerticalDividerPosition());
+        horizontalSplitPaneChanged(DEFAULT_LAYOUT.getHorizontalDividerPosition());
+        commandColumnWidthChanged(DEFAULT_LAYOUT.getTableCommandColumnWidth());
+        directoryColumnWidthChanged(DEFAULT_LAYOUT.getTableDirectoryColumnWidth());
+        commentColumnWidthChanged(DEFAULT_LAYOUT.getTableCommentColumnWidth());
     }
 
     public void about(ActionEvent event) throws IOException {
@@ -173,5 +176,46 @@ public class MainController implements Initializable {
         if (consume) {
             event.consume();
         }
+    }
+
+    public void addLayoutChangedListener(LayoutChangedListener listener) {
+        layoutChangeListeners.add(listener);
+    }
+
+    public void setLayout(WindowLayout windowLayout) {
+        verticalSplitPane.setDividerPosition(0, windowLayout.getVerticalDividerPosition());
+        horizontalSplitPane.setDividerPosition(0, windowLayout.getHorizontalDividerPosition());
+        commandColumn.setPrefWidth(windowLayout.getTableCommandColumnWidth());
+        directoryColumn.setPrefWidth(windowLayout.getTableDirectoryColumnWidth());
+        commentColumn.setPrefWidth(windowLayout.getTableCommentColumnWidth());
+    }
+
+
+    private void verticalSplitPaneChanged(Number newValue) {
+        layoutChangeListeners.forEach(l -> l.verticalDividerPositionChanged(newValue.doubleValue()));
+    }
+
+    private void horizontalSplitPaneChanged(Number newValue) {
+        layoutChangeListeners.forEach(l -> l.horizontalDividerPositionChanged(newValue.doubleValue()));
+    }
+
+    private void commandColumnWidthChanged(Number newValue) {
+        layoutChangeListeners.forEach(l -> l.tableCommandColumnWidthChanged(newValue.intValue()));
+    }
+
+    private void commentColumnWidthChanged(Number newValue) {
+        layoutChangeListeners.forEach(l -> l.tableCommentColumnWidthChanged(newValue.intValue()));
+    }
+
+    private void directoryColumnWidthChanged(Number newValue) {
+        layoutChangeListeners.forEach(l -> l.tableDirectoryColumnWidthChanged(newValue.intValue()));
+    }
+
+    public void addChangeListeners() {
+        verticalSplitPane.getDividers().get(0).positionProperty().addListener((observable, oldValue, newValue) -> verticalSplitPaneChanged(newValue));
+        horizontalSplitPane.getDividers().get(0).positionProperty().addListener((observable, oldValue, newValue) -> horizontalSplitPaneChanged(newValue));
+        commandColumn.widthProperty().addListener((observable, oldValue, newValue) -> commandColumnWidthChanged(newValue));
+        commentColumn.widthProperty().addListener((observable, oldValue, newValue) -> commentColumnWidthChanged(newValue));
+        directoryColumn.widthProperty().addListener((observable, oldValue, newValue) -> directoryColumnWidthChanged(newValue));
     }
 }

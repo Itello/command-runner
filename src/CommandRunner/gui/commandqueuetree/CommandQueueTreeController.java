@@ -139,9 +139,8 @@ public class CommandQueueTreeController implements CommandListener, CommandQueue
 
     @Override
     public void commandQueueIsProcessing(Command command) {
-        getTreeItemForCommand(commandQueueTreeView.getRoot(), command).ifPresent(treeItem -> {
-            setItemGraphic(treeItem, RUNNING_COMMAND_GRAPHIC);
-        });
+        getTreeItemForCommand(commandQueueTreeView.getRoot(), command)
+                .ifPresent(treeItem -> setItemGraphic(treeItem, RUNNING_COMMAND_GRAPHIC));
 
         command.addCommandListener(this);
     }

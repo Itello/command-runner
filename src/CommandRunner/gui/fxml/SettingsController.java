@@ -1,7 +1,7 @@
 package CommandRunner.gui.fxml;
 
 import CommandRunner.CommandRunner;
-import CommandRunner.Settings;
+import CommandRunner.ProgramState;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
@@ -39,23 +39,23 @@ public class SettingsController implements Initializable {
     public void initialize(URL location, ResourceBundle resources) {
         assert haltOnErrorCheckBox != null : "fx:id=\"haltOnErrorCheckBox\" was not injected: check FXML file 'settings.fxml'.";
 
-        final Settings settings = CommandRunner.getInstance().getSettings();
-        haltOnErrorCheckBox.setSelected(settings.getHaltOnError());
-        confirmNonemptyDeleteCheckBox.setSelected(settings.getConfirmNonemptyDelete());
-        saveOnExitGroup.selectToggle(getButtonFromSaveOnExitSettings(settings));
+        final ProgramState programState = CommandRunner.getInstance().getProgramState();
+        haltOnErrorCheckBox.setSelected(programState.getHaltOnError());
+        confirmNonemptyDeleteCheckBox.setSelected(programState.getConfirmNonemptyDelete());
+        saveOnExitGroup.selectToggle(getButtonFromSaveOnExitSettings(programState));
     }
 
     public void save(ActionEvent event) {
-        Settings settings = CommandRunner.getInstance().getSettings();
-        settings.setHaltOnError(haltOnErrorCheckBox.isSelected());
-        settings.setConfirmNonemptyDelete(confirmNonemptyDeleteCheckBox.isSelected());
-        settings.setSaveOnExit(getSaveOnExitFromToggleGroup());
-        settings.saveSettingsButKeepCommands();
+        ProgramState programState = CommandRunner.getInstance().getProgramState();
+        programState.setHaltOnError(haltOnErrorCheckBox.isSelected());
+        programState.setConfirmNonemptyDelete(confirmNonemptyDeleteCheckBox.isSelected());
+        programState.setSaveOnExit(getSaveOnExitFromToggleGroup());
+        programState.saveSettings();
         closeStage(event);
     }
 
-    private RadioButton getButtonFromSaveOnExitSettings(Settings settings) {
-        Settings.SaveOnExit saveOnExit = settings.getSaveOnExit();
+    private RadioButton getButtonFromSaveOnExitSettings(ProgramState programState) {
+        ProgramState.SaveOnExit saveOnExit = programState.getSaveOnExit();
 
         switch (saveOnExit) {
             case ASK:
@@ -69,14 +69,14 @@ public class SettingsController implements Initializable {
         }
     }
 
-    private Settings.SaveOnExit getSaveOnExitFromToggleGroup() {
+    private ProgramState.SaveOnExit getSaveOnExitFromToggleGroup() {
         Toggle selectedButton = saveOnExitGroup.getSelectedToggle();
         if (selectedButton == askOnExitRadioButton) {
-            return Settings.SaveOnExit.ASK;
+            return ProgramState.SaveOnExit.ASK;
         } else if (selectedButton == saveOnExitRadioButton) {
-            return Settings.SaveOnExit.SAVE;
+            return ProgramState.SaveOnExit.SAVE;
         } else if (selectedButton == forgetOnExitRadioButton) {
-            return Settings.SaveOnExit.FORGET;
+            return ProgramState.SaveOnExit.FORGET;
         }
 
         return null;

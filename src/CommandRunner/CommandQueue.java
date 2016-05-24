@@ -82,7 +82,7 @@ public class CommandQueue implements CommandListener {
     @Override
     public void commandExecuted(Command command) {
         if (status == CommandQueueStatus.Running) {
-            if (command.getCommandStatus().equals(CommandStatus.FAIL) && CommandRunner.getInstance().getSettings().getHaltOnError()) {
+            if (command.getCommandStatus().equals(CommandStatus.FAIL) && CommandRunner.getInstance().getProgramState().getHaltOnError()) {
                 setStoppedState();
                 listeners.forEach(listener -> listener.commandQueueFinished(this));
             } else {

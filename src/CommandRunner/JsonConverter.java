@@ -43,6 +43,7 @@ public class JsonConverter {
             object.put(JSONFileReader.NAME, commandTableRow.commandNameAndArgumentsProperty().getValue());
             object.put(JSONFileReader.COMMAND_COMMENT_STRING, commandTableRow.commandCommentProperty().getValue());
             object.put(JSONFileReader.DIRECTORY_STRING, commandTableRow.commandDirectoryProperty().getValue());
+            object.put(JSONFileReader.IS_EXPANDED, node.isExpanded());
             JSONArray array = new JSONArray();
             for (TreeItem<CommandTableRow> child : node.getChildren()) {
                 JSONObject childJSON = new JSONObject();

@@ -35,10 +35,6 @@ public class CommandTableCommandRow extends CommandTableRow {
         command.setCommandDirectory(commandDirectory);
     }
 
-    public void updateCommandStatus() {
-        setCommandStatus(command.getCommandStatus().getStringValue());
-    }
-
     @Override
     public void setCommandComment(String commandComment) {
         super.setCommandComment(commandComment);

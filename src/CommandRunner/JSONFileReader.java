@@ -20,6 +20,7 @@ public class JSONFileReader {
     static final String CHILDREN = "children";
     static final String COMMAND = "command";
     static final String DIRECTORY_STRING = "directory";
+    static final String IS_EXPANDED = "isExpanded";
 
     public static String readJsonObjectFromFile(File file) {
         final StringBuilder fileContents = new StringBuilder();
@@ -56,7 +57,9 @@ public class JSONFileReader {
             commandTableRow = new CommandTableGroupRow(object.getString(NAME), directory, comment);
         }
 
+        boolean isExpanded = object.has(IS_EXPANDED) && object.getBoolean(IS_EXPANDED);
         TreeItem<CommandTableRow> node = new TreeItem<>(commandTableRow);
+        node.setExpanded(isExpanded);
 
         if (jsonChildren != null) {
             for (int i = 0; i < jsonChildren.length(); i++) {

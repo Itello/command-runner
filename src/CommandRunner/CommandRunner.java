@@ -1,9 +1,11 @@
 package CommandRunner;
 
+import CommandRunner.gui.WindowLayout;
 import CommandRunner.gui.commandtable.CommandTableCommandRow;
 import CommandRunner.gui.commandtable.CommandTableRow;
 import CommandRunner.gui.fxml.MainController;
 import javafx.application.Application;
+import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
@@ -33,18 +35,18 @@ public class CommandRunner extends Application implements CommandQueueListener, 
 
     private static CommandRunner instance = null;
 
-    private Stage primaryStage;
-
-    private final Settings settings;
+    private final ProgramState programState;
 
     private String runCommand = null;
+    private Stage primaryStage;
     private TreeItem<CommandTableRow> rootNode;
 
+    @SuppressWarnings("unused")
     public CommandRunner() throws Exception {
         if (instance != null) {
             throw new Exception("There can be only one");
         }
-        settings = new Settings();
+        programState = new ProgramState();
         instance = this;
     }
 
@@ -68,6 +70,7 @@ public class CommandRunner extends Application implements CommandQueueListener, 
     @Override
     public void start(Stage primaryStage) throws Exception {
         this.primaryStage = primaryStage;
+        rootNode = loadSettings();
 
         if (runCommand != null) {
             runCommand(runCommand);
@@ -77,14 +80,19 @@ public class CommandRunner extends Application implements CommandQueueListener, 
             primaryStage.getIcons().add(new Image("png/icon.png"));
             primaryStage.setScene(createScene(root));
             primaryStage.setOnCloseRequest(this::onClose);
+            WindowLayout windowLayout = programState.getWindowLayout();
+            primaryStage.setWidth(windowLayout.getWindowWidth());
+            primaryStage.setHeight(windowLayout.getWindowHeight());
             primaryStage.show();
         }
     }
 
     private void onClose(WindowEvent event) {
-        switch (settings.getSaveOnExit()) {
+        programState.saveLayout(primaryStage.getWidth(), primaryStage.getHeight());
+        switch (programState.getSaveOnExit()) {
             case ASK:
-                if (settings.hasChangesSinceLastSave()) {
+
+                if (programState.hasChangesSinceLastSave()) {
                     showAskSaveAlert(event);
                 }
                 break;
@@ -126,7 +134,7 @@ public class CommandRunner extends Application implements CommandQueueListener, 
         FXMLLoader loader = getFXML(SETTINGS_FXML);
         Parent root = loader.load();
         Stage settingsStage = new Stage();
-        settingsStage.setTitle("Settings");
+        settingsStage.setTitle("ProgramState");
         settingsStage.getIcons().add(new Image("png/icon.png"));
         settingsStage.setScene(createScene(root));
         settingsStage.show();
@@ -137,8 +145,13 @@ public class CommandRunner extends Application implements CommandQueueListener, 
     }
 
     public void controllerLoaded(MainController controller) {
-        rootNode = loadSettings();
         controller.setRoot(rootNode);
+        controller.addLayoutChangedListener(programState);
+
+        Platform.runLater(() -> {
+            controller.setLayout(programState.getWindowLayout());
+            controller.addChangeListeners();
+        });
     }
 
     public Stage getPrimaryStage() {
@@ -146,20 +159,21 @@ public class CommandRunner extends Application implements CommandQueueListener, 
     }
 
     public void save(TreeItem<CommandTableRow> node) {
-        settings.save(node);
+        programState.saveCommands(node);
     }
 
     private void save() {
-        save(rootNode);
+        programState.saveSettings();
+        programState.saveCommands(rootNode);
     }
 
     private TreeItem<CommandTableRow> loadSettings() {
-        settings.load();
-        return settings.getRoot();
+        programState.load();
+        return programState.getRoot();
     }
 
-    public Settings getSettings() {
-        return settings;
+    public ProgramState getProgramState() {
+        return programState;
     }
 
     private void runCommand(String commandComment) {

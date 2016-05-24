@@ -122,7 +122,10 @@
                                 </HBox>
                             </buttons>
                         </ButtonBar>
-                        <TreeView fx:id="commandQueueTreeView" VBox.vgrow="ALWAYS" />
+                        <TreeView fx:id="commandQueueTreeView" VBox.vgrow="ALWAYS">
+                     <VBox.margin>
+                        <Insets left="-5.0" />
+                     </VBox.margin></TreeView>
                     </VBox>
                 </AnchorPane>
             </SplitPane>

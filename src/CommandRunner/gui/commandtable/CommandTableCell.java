@@ -4,8 +4,8 @@ import javafx.scene.control.Tooltip;
 import javafx.scene.control.cell.TextFieldTreeTableCell;
 import javafx.util.converter.DefaultStringConverter;
 
-public class CommandTableCell extends TextFieldTreeTableCell<CommandTableRow, String> {
-    public CommandTableCell() {
+class CommandTableCell extends TextFieldTreeTableCell<CommandTableRow, String> {
+    CommandTableCell() {
         super(new DefaultStringConverter());
     }
 

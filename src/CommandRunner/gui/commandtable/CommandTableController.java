@@ -1,11 +1,8 @@
 package CommandRunner.gui.commandtable;
 
 import CommandRunner.*;
-import CommandRunner.gui.commandqueuetree.CommandQueueTreeRow;
 import javafx.application.Platform;
 import javafx.collections.ObservableList;
-import javafx.event.ActionEvent;
-import javafx.event.Event;
 import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
@@ -22,51 +19,40 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import static CommandRunner.gui.commandtable.CommandTableRowTreeItemListManipulator.getFlatTreeItemList;
-
 public class CommandTableController {
     private static final Image FOLDER_ICON = new Image("png/folder.png");
     private static final Image COMMAND_ICON = new Image("png/command.png");
 
-    private final TreeView<CommandQueueTreeRow> commandQueueTreeView;
     private final TreeTableView<CommandTableRow> commandTable;
     private final TreeTableColumn<CommandTableRow, String> commandColumn;
-    private final TreeTableColumn<CommandTableRow, String> directoryColumn;
-    private final TreeTableColumn<CommandTableRow, String> commentColumn;
 
     private int dragStartIndex;
 
-    public CommandTableController(TreeView<CommandQueueTreeRow> commandQueueTreeView, TreeTableView<CommandTableRow> commandTable, TreeTableColumn<CommandTableRow, String> commandColumn, TreeTableColumn<CommandTableRow, String> directoryColumn, TreeTableColumn<CommandTableRow, String> commentColumn) {
-        this.commandQueueTreeView = commandQueueTreeView;
+    public CommandTableController(TreeTableView<CommandTableRow> commandTable, TreeTableColumn<CommandTableRow, String> commandColumn, TreeTableColumn<CommandTableRow, String> directoryColumn, TreeTableColumn<CommandTableRow, String> commentColumn) {
         this.commandTable = commandTable;
         this.commandColumn = commandColumn;
-        this.directoryColumn = directoryColumn;
-        this.commentColumn = commentColumn;
         // todo move all Table stuff to new class in commandTable package
 
-        this.commandTable.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
+        commandTable.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
 
-        this.commandColumn.setCellValueFactory(cellData -> cellData.getValue().getValue().commandNameAndArgumentsProperty());
+        commandColumn.setCellValueFactory(cellData -> cellData.getValue().getValue().commandNameAndArgumentsProperty());
 
-        this.commentColumn.setCellValueFactory(cellData -> cellData.getValue().getValue().commandCommentProperty());
-        this.directoryColumn.setCellValueFactory(cellData -> cellData.getValue().getValue().commandDirectoryProperty());
+        commentColumn.setCellValueFactory(cellData -> cellData.getValue().getValue().commandCommentProperty());
+        directoryColumn.setCellValueFactory(cellData -> cellData.getValue().getValue().commandDirectoryProperty());
 
-        setToolTipLabel(this.directoryColumn, "Starting directory (NOT command location)");
-        setToolTipLabel(this.commandColumn, "Command name and arguments, including path if command is not in path");
+        setToolTipLabel(directoryColumn, "Starting directory (NOT command location)");
+        setToolTipLabel(commandColumn, "Command name and arguments, including path if command is not in path");
 
-        this.directoryColumn.setOnEditCommit(event -> {
-            event.getTreeTablePosition().getTreeItem().getValue().setCommandDirectory(event.getNewValue());
-        });
-        this.commentColumn.setOnEditCommit(event -> {
-            event.getTreeTablePosition().getTreeItem().getValue().setCommandComment(event.getNewValue());
-        });
-        this.commandColumn.setOnEditCommit(event -> {
-            event.getTreeTablePosition().getTreeItem().getValue().setCommandNameAndArguments(event.getNewValue());
-        });
+        directoryColumn.setOnEditCommit(event ->
+                event.getTreeTablePosition().getTreeItem().getValue().setCommandDirectory(event.getNewValue()));
+        commentColumn.setOnEditCommit(event ->
+                event.getTreeTablePosition().getTreeItem().getValue().setCommandComment(event.getNewValue()));
+        commandColumn.setOnEditCommit(event ->
+                event.getTreeTablePosition().getTreeItem().getValue().setCommandNameAndArguments(event.getNewValue()));
 
-        this.directoryColumn.setCellFactory(param -> getTooltipTextFieldTreeTableCell());
-        this.commentColumn.setCellFactory(param -> getTooltipTextFieldTreeTableCell());
-        this.commandColumn.setCellFactory(param -> {
+        directoryColumn.setCellFactory(param -> getTooltipTextFieldTreeTableCell());
+        commentColumn.setCellFactory(param -> getTooltipTextFieldTreeTableCell());
+        commandColumn.setCellFactory(param -> {
                     TreeTableCell<CommandTableRow, String> cell = getTooltipTextFieldTreeTableCell();
 
                     // highlight drop target by changing background color:
@@ -83,7 +69,6 @@ public class CommandTableController {
                         final Dragboard dragboard = event.getDragboard();
 
                         if (isExternalSource(event) && dragboard.hasFiles()) {
-                            String filePath = null;
                             for (File file : dragboard.getFiles()) {
                                 try {
                                     final String jsonFromFile = JSONFileReader.readJsonObjectFromFile(file);
@@ -117,7 +102,7 @@ public class CommandTableController {
                             if (copying) {
                                 copyRowsToItem(cell.getTreeTableRow().getTreeItem());
                             } else {
-                                moveRowsToItem(cell.getTreeTableRow().getTreeItem(), true, null);
+                                moveRowsToItem(cell.getTreeTableRow().getTreeItem(), true);
                             }
                         }
 
@@ -188,8 +173,8 @@ public class CommandTableController {
         moveRowsToItem(itemToDragTo, true, true, null);
     }
 
-    private void moveRowsToItem(TreeItem<CommandTableRow> itemToDragTo, boolean moveIntoIfGroup, List<TreeItem<CommandTableRow>> dragRows) {
-        moveRowsToItem(itemToDragTo, moveIntoIfGroup, false, dragRows);
+    private void moveRowsToItem(TreeItem<CommandTableRow> itemToDragTo, boolean moveIntoIfGroup) {
+        moveRowsToItem(itemToDragTo, moveIntoIfGroup, false, null);
     }
 
     private void moveRowsToItem(TreeItem<CommandTableRow> itemToDragTo, boolean moveIntoIfGroup, boolean copy, List<TreeItem<CommandTableRow>> dragRows) {
@@ -276,7 +261,7 @@ public class CommandTableController {
         return new CommandTableCell();
     }
 
-    public void addSelectedItemsToGroup(String name) {
+    public void addSelectedItemsToGroup() {
         final List<TreeItem<CommandTableRow>> selectedItems = new ArrayList<>(getSelectedItems());
         if (selectedItems.isEmpty()) {
             return;
@@ -284,7 +269,7 @@ public class CommandTableController {
 
         final TreeItem<CommandTableRow> item = selectedItems.get(0);
         final TreeItem<CommandTableRow> parent = item.getParent();
-        final TreeItem<CommandTableRow> group = copyTreeItem(new TreeItem<>(new CommandTableGroupRow(name, "", "")));
+        final TreeItem<CommandTableRow> group = copyTreeItem(new TreeItem<>(new CommandTableGroupRow("Group", "", "")));
 
         int moveToIndex = parent.getChildren().indexOf(item);
 
@@ -303,7 +288,7 @@ public class CommandTableController {
         editRow(commandTable.getRow(group));
     }
 
-    public void removeCommandTableRow(Event event) {
+    public void removeCommandTableRow() {
         final ArrayList<TreeItem<CommandTableRow>> commandTableRows = new ArrayList<>(getSelectedItems());
 
         getSelectedItems().stream()
@@ -313,7 +298,7 @@ public class CommandTableController {
         for (final TreeItem<CommandTableRow> item : commandTableRows) {
             final CommandTableRow row = item.getValue();
             if (row instanceof CommandTableGroupRow
-                    && CommandRunner.getInstance().getSettings().getConfirmNonemptyDelete()
+                    && CommandRunner.getInstance().getProgramState().getConfirmNonemptyDelete()
                     && !item.getChildren().isEmpty()) {
                 final Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
                 alert.setTitle("Delete non-empty group \"" + row.commandNameAndArgumentsProperty().get() + "\"?");
@@ -343,7 +328,7 @@ public class CommandTableController {
         item.getParent().getChildren().remove(item);
     }
 
-    public void addCommandTableRow(ActionEvent event) {
+    public void addCommandTableRow() {
         TreeItem<CommandTableRow> treeItem = new TreeItem<>(
                 new CommandTableCommandRow(
                         new Command("", "", "")
@@ -358,13 +343,13 @@ public class CommandTableController {
 
     private void editRow(int row) {
         // HACK: javafx is stupid
-        sleep(10);
+        quickHackSleep();
         Platform.runLater(() -> commandTable.edit(row, commandColumn));
     }
 
-    private void sleep(int millis) {
+    private void quickHackSleep() {
         try {
-            Thread.sleep(millis);
+            Thread.sleep(10);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
@@ -389,25 +374,12 @@ public class CommandTableController {
                     .min(Integer::compare)
                     .orElseThrow(() -> new IllegalStateException("umm"));
             if (dragStartIndex + modifier >= 0) {
-                moveRowsToItem(commandTable.getTreeItem(dragStartIndex + modifier), false, null);
+                moveRowsToItem(commandTable.getTreeItem(dragStartIndex + modifier), false);
             }
         }
     }
 
-    private CommandTableCommandRow findRowForCommand(Command command) {
-        return (CommandTableCommandRow) getFlatTreeItemList(commandTable.getRoot()).stream()
-                .map(TreeItem::getValue)
-                .filter(row -> row instanceof CommandTableCommandRow)
-                .filter(row -> ((CommandTableCommandRow) row).getCommand() == command)
-                .collect(Collectors.toList())
-                .get(0);
-    }
-
     public void setRoot(TreeItem<CommandTableRow> commandTreeNode) {
-        if (commandTreeNode == null) {
-            commandTreeNode = new TreeItem<>(new CommandTableGroupRow("root", "", ""));
-        }
-
         commandTable.setRoot(commandTreeNode);
         fixGraphicHierarchically(commandTreeNode);
         commandTable.getRoot().setExpanded(true);
