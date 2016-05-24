@@ -1,6 +1,7 @@
 package CommandRunner.gui.fxml;
 
 import CommandRunner.CommandRunner;
+import CommandRunner.gui.DefaultLayout;
 import CommandRunner.gui.commandqueuetree.CommandQueueTreeController;
 import CommandRunner.gui.commandqueuetree.CommandQueueTreeRow;
 import CommandRunner.gui.commandtable.CommandTableController;
@@ -18,29 +19,28 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.ResourceBundle;
 
+import static CommandRunner.gui.DefaultLayout.*;
+
 @SuppressWarnings("UnusedDeclaration")
 public class MainController implements Initializable {
-
     @FXML
-    public TreeView<CommandQueueTreeRow> commandQueueTreeView;
-
+    private SplitPane verticalSplitPane;
+    @FXML
+    private SplitPane horizontalSplitPane;
+    @FXML
+    private TreeView<CommandQueueTreeRow> commandQueueTreeView;
     @FXML
     private TreeTableView<CommandTableRow> commandTable;
-
     @FXML
     private TreeTableColumn<CommandTableRow, String> commandColumn;
-
     @FXML
     private TreeTableColumn<CommandTableRow, String> directoryColumn;
-
     @FXML
     private TreeTableColumn<CommandTableRow, String> commentColumn;
-
     @FXML
     private TextArea commandOutputArea;
 
     private CommandQueueTreeController commandQueueTreeController;
-
     private CommandTableController commandTableController;
 
     @Override
@@ -123,7 +123,19 @@ public class MainController implements Initializable {
     }
 
     public void resetLayout(ActionEvent event) {
-        // TODO
+
+        Stage primaryStage = CommandRunner.getInstance().getPrimaryStage();
+
+        primaryStage.setWidth(WINDOW_WIDTH);
+        primaryStage.setHeight(WINDOW_HEIGHT);
+        primaryStage.centerOnScreen();
+
+        horizontalSplitPane.setDividerPosition(0, HORIZONTAL_DIVIDER_POSITION);
+        verticalSplitPane.setDividerPosition(0, VERTICAL_DIVIDER_POSITION);
+
+        commandColumn.setPrefWidth(TABLE_COMMAND_COLUMN_WIDTH);
+        commentColumn.setPrefWidth(TABLE_COMMENT_COLUMN_WIDTH);
+        directoryColumn.setPrefWidth(TABLE_DIRECTORY_COLUMN_WIDTH);
     }
 
     public void about(ActionEvent event) throws IOException {
