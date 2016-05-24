@@ -83,15 +83,15 @@ public class CommandRunner extends Application implements CommandQueueListener, 
             WindowLayout windowLayout = programState.getWindowLayout();
             primaryStage.setWidth(windowLayout.getWindowWidth());
             primaryStage.setHeight(windowLayout.getWindowHeight());
+            primaryStage.setMaximized(windowLayout.isMaximized());
             primaryStage.show();
         }
     }
 
     private void onClose(WindowEvent event) {
-        programState.saveLayout(primaryStage.getWidth(), primaryStage.getHeight());
+        programState.saveLayout(primaryStage.getWidth(), primaryStage.getHeight(), primaryStage.isMaximized());
         switch (programState.getSaveOnExit()) {
             case ASK:
-
                 if (programState.hasChangesSinceLastSave()) {
                     showAskSaveAlert(event);
                 }

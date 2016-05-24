@@ -12,10 +12,12 @@ public class WindowLayout {
                     .setHorizontalDividerPosition(0.83f)
                     .setTableCommandColumnWidth(490)
                     .setTableDirectoryColumnWidth(250)
-                    .setTableCommentColumnWidth(100);
+                    .setTableCommentColumnWidth(100)
+                    .setMaximized(false);
 
     private static final String WINDOW_WIDTH = "WINDOW_WIDTH";
     private static final String WINDOW_HEIGHT = "WINDOW_HEIGHT";
+    private static final String IS_MAXIMIZED = "IS_MAXIMIZED";
     private static final String VERTICAL_DIVIDER_POSITION = "VERTICAL_DIVIDER_POSITION";
     private static final String HORIZONTAL_DIVIDER_POSITION = "HORIZONTAL_DIVIDER_POSITION";
     private static final String TABLE_COMMAND_COLUMN_WIDTH = "TABLE_COMMAND_COLUMN_WIDTH";
@@ -24,13 +26,12 @@ public class WindowLayout {
 
     private int windowWidth;
     private int windowHeight;
-
     private double verticalDividerPosition;
     private double horizontalDividerPosition;
-
     private int tableCommandColumnWidth;
     private int tableDirectoryColumnWidth;
     private int tableCommentColumnWidth;
+    private boolean isMaximized;
 
     private WindowLayout() {
     }
@@ -42,7 +43,8 @@ public class WindowLayout {
                 .setHorizontalDividerPosition((float) jsonObject.getDouble(HORIZONTAL_DIVIDER_POSITION))
                 .setTableCommandColumnWidth(jsonObject.getInt(TABLE_COMMAND_COLUMN_WIDTH))
                 .setTableDirectoryColumnWidth(jsonObject.getInt(TABLE_DIRECTORY_COLUMN_WIDTH))
-                .setTableCommentColumnWidth(jsonObject.getInt(TABLE_COMMENT_COLUMN_WIDTH));
+                .setTableCommentColumnWidth(jsonObject.getInt(TABLE_COMMENT_COLUMN_WIDTH))
+                .setMaximized(jsonObject.getBoolean(IS_MAXIMIZED));
     }
 
     public WindowLayout setWindowWidth(int windowWidth) {
@@ -80,6 +82,11 @@ public class WindowLayout {
         return this;
     }
 
+    public WindowLayout setMaximized(boolean maximized) {
+        isMaximized = maximized;
+        return this;
+    }
+
     public int getWindowWidth() {
         return windowWidth;
     }
@@ -108,6 +115,10 @@ public class WindowLayout {
         return tableCommentColumnWidth;
     }
 
+    public boolean isMaximized() {
+        return isMaximized;
+    }
+
     public JSONObject jsonObject() throws JSONException {
         return new JSONObject()
                 .put(WINDOW_WIDTH, windowWidth)
@@ -116,6 +127,7 @@ public class WindowLayout {
                 .put(HORIZONTAL_DIVIDER_POSITION, horizontalDividerPosition)
                 .put(TABLE_COMMAND_COLUMN_WIDTH, tableCommandColumnWidth)
                 .put(TABLE_DIRECTORY_COLUMN_WIDTH, tableDirectoryColumnWidth)
-                .put(TABLE_COMMENT_COLUMN_WIDTH, tableCommentColumnWidth);
+                .put(TABLE_COMMENT_COLUMN_WIDTH, tableCommentColumnWidth)
+                .put(IS_MAXIMIZED, isMaximized);
     }
 }

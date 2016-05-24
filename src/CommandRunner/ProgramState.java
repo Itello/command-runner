@@ -60,10 +60,13 @@ public class ProgramState implements LayoutChangedListener {
         }
     }
 
-    void saveLayout(double width, double height) {
+    void saveLayout(double width, double height, boolean isMaximized) {
         try {
-            windowLayout.setWindowWidth((int) width);
-            windowLayout.setWindowHeight((int) height);
+            if (! isMaximized) {
+                windowLayout.setWindowWidth((int) width);
+                windowLayout.setWindowHeight((int) height);
+            }
+            windowLayout.setMaximized(isMaximized);
             settingsObject.put(WINDOW_LAYOUT, windowLayout.jsonObject());
             saveToFile();
         } catch (Exception e) {
