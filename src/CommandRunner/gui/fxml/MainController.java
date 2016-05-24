@@ -11,6 +11,8 @@ import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.*;
 import javafx.scene.input.KeyEvent;
+import javafx.stage.Stage;
+import javafx.stage.WindowEvent;
 
 import java.io.IOException;
 import java.net.URL;
@@ -37,9 +39,6 @@ public class MainController implements Initializable {
     @FXML
     private TextArea commandOutputArea;
 
-    // todo: don't need this when changes are based on file load vs current
-    private int changesSinceLastSave = 0;
-
     private CommandQueueTreeController commandQueueTreeController;
 
     private CommandTableController commandTableController;
@@ -52,7 +51,7 @@ public class MainController implements Initializable {
 
         commandQueueTreeController = new CommandQueueTreeController(commandQueueTreeView, commandOutputArea);
 
-        this.commandTable.addEventFilter(KeyEvent.KEY_PRESSED, this::tableKeyPressed);
+        commandTable.addEventFilter(KeyEvent.KEY_PRESSED, this::tableKeyPressed);
 
         CommandRunner.getInstance().controllerLoaded(this);
     }
@@ -84,7 +83,6 @@ public class MainController implements Initializable {
 
     private void save() {
         CommandRunner.getInstance().save(getRoot());
-        changesSinceLastSave = 0;
     }
 
     @FXML
@@ -110,13 +108,14 @@ public class MainController implements Initializable {
         commandTableController.setRoot(commandTreeNode);
     }
 
-    // TODO fix
-    public boolean hasChangesSinceLastSave() {
-        return changesSinceLastSave != 0;
-    }
-
     public void close(ActionEvent event) {
-        System.exit(0);
+        final Stage stage = CommandRunner.getInstance().getPrimaryStage();
+        stage.fireEvent(
+                new WindowEvent(
+                        stage,
+                        WindowEvent.WINDOW_CLOSE_REQUEST
+                )
+        );
     }
 
     public void deleteSelectedFromTable(ActionEvent event) {

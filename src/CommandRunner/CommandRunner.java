@@ -76,8 +76,8 @@ public class CommandRunner extends Application implements CommandQueueListener, 
             primaryStage.setTitle(PROGRAM_TITLE);
             primaryStage.getIcons().add(new Image("png/icon.png"));
             primaryStage.setScene(createScene(root));
-            primaryStage.show();
             primaryStage.setOnCloseRequest(this::onClose);
+            primaryStage.show();
         }
     }
 

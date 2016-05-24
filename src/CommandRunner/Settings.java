@@ -28,10 +28,6 @@ public class Settings {
     private boolean confirmNonemptyDelete = true;
     private SaveOnExit saveOnExit = SaveOnExit.ASK;
 
-    Settings() {
-
-    }
-
     public void saveSettingsButKeepCommands() {
         save(root);
     }
@@ -40,8 +36,7 @@ public class Settings {
         this.root = root;
 
         try {
-            JSONObject commandsObject = new JSONObject();
-            appendNodeHierarchyToJSON(root, commandsObject);
+            JSONObject commandsObject = getCommandsObject(root);
 
             JSONObject settingsObject = new JSONObject();
             settingsObject.put(COMMANDS, commandsObject);
@@ -64,9 +59,9 @@ public class Settings {
                 JSONObject settingsObject = JsonConverter.convertFromJSONToObject(settingsString);
 
                 setRoot(JSONFileReader.createNode(settingsObject.getJSONObject(COMMANDS)));
-                    haltOnError = settingsObject.getBoolean(HALT_ON_ERROR);
-                    confirmNonemptyDelete = settingsObject.getBoolean(CONFIRM_NONEMPTY_DELETE);
-                    saveOnExit = SaveOnExit.valueOf(settingsObject.getString(SAVE_ON_EXIT));
+                haltOnError = settingsObject.getBoolean(HALT_ON_ERROR);
+                confirmNonemptyDelete = settingsObject.getBoolean(CONFIRM_NONEMPTY_DELETE);
+                saveOnExit = SaveOnExit.valueOf(settingsObject.getString(SAVE_ON_EXIT));
             } catch (JSONException e) {
                 e.printStackTrace();
             }
@@ -106,7 +101,40 @@ public class Settings {
     }
 
     boolean hasChangesSinceLastSave() {
-        // TODO
-        return false;
+        final Settings settings = new Settings();
+        settings.load();
+        return !settings.equals(this);
+    }
+
+    private JSONObject getCommandsObject(TreeItem<CommandTableRow> root) throws JSONException {
+        JSONObject commandsObject = new JSONObject();
+        appendNodeHierarchyToJSON(root, commandsObject);
+        return commandsObject;
+    }
+
+    @Override
+    public boolean equals(Object other) {
+        if (other instanceof Settings) {
+            return hashCode() == other.hashCode();
+        }
+
+        return super.equals(other);
+    }
+
+    @Override
+    public int hashCode() {
+        try {
+            int result = (haltOnError ? 1 : 0);
+            result = 31 * result + (confirmNonemptyDelete ? 1 : 0);
+            result = 31 * result + saveOnExit.hashCode();
+            final String thisJSON;
+            thisJSON = getCommandsObject(root).toString();
+            result = 31 * result + thisJSON.hashCode();
+            return result;
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
+        return 0;
     }
 }
