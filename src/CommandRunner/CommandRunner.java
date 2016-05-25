@@ -18,12 +18,10 @@ import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
+import static CommandRunner.CommandStatus.sortCommandStatuses;
 import static CommandRunner.gui.commandtable.CommandTableRowTreeItemListManipulator.addAllCommandRowsForTreeItem;
 import static CommandRunner.gui.commandtable.CommandTableRowTreeItemListManipulator.getFlatTreeItemList;
 
@@ -41,6 +39,8 @@ public class CommandRunner extends Application implements CommandQueueListener, 
     private String runCommand = null;
     private Stage primaryStage;
     private TreeItem<CommandTableRow> rootNode;
+    private boolean runningWithParameters = false;
+    private ArrayDeque<CommandQueue> runningQueues;
 
     @SuppressWarnings("unused")
     public CommandRunner() throws Exception {
@@ -75,6 +75,7 @@ public class CommandRunner extends Application implements CommandQueueListener, 
 
         if (runCommand != null) {
             runCommand(runCommand);
+            runningWithParameters = true;
         } else {
             Parent root = FXMLLoader.load(getClass().getResource("gui/fxml/main.fxml"));
             primaryStage.setTitle(PROGRAM_TITLE);
@@ -86,6 +87,7 @@ public class CommandRunner extends Application implements CommandQueueListener, 
             primaryStage.setHeight(windowLayout.getWindowHeight());
             primaryStage.setMaximized(windowLayout.isMaximized());
             primaryStage.show();
+            runningQueues = new ArrayDeque<>();
         }
     }
 
@@ -225,18 +227,30 @@ public class CommandRunner extends Application implements CommandQueueListener, 
 
     @Override
     public void commandQueueStarted(CommandQueue commandQueue) {
-
+        if (! runningWithParameters) {
+            runningQueues.addFirst(commandQueue);
+            setTitleWithCommandQueueStatus();
+        }
     }
 
     @Override
     public void commandQueueFinished(CommandQueue commandQueue) {
-        System.exit(0);
+        if (! runningWithParameters) {
+            setTitleWithCommandQueueStatus();
+            runningQueues.remove(commandQueue);
+        } else {
+            System.exit(0);
+        }
     }
 
     @Override
     public void commandQueueIsProcessing(Command command) {
-        System.out.println("--- executing " + command.getCommandNameAndArguments() + " ----");
-        command.addCommandListener(this);
+        if (! runningWithParameters) {
+            setTitleWithCommandQueueStatus();
+        } else {
+            System.out.println("--- executing " + command.getCommandNameAndArguments() + " ----");
+            command.addCommandListener(this);
+        }
     }
 
     @Override
@@ -256,5 +270,18 @@ public class CommandRunner extends Application implements CommandQueueListener, 
         settingsStage.getIcons().add(new Image("png/icon.png"));
         settingsStage.setScene(createScene(root));
         settingsStage.show();
+    }
+
+    private void setTitleWithCommandQueueStatus() {
+        if (runningQueues.isEmpty()) {
+            return;
+        }
+
+        List<CommandStatus> commandStatusList = runningQueues.stream()
+                .map(CommandQueue::getCommandStatus)
+                .collect(Collectors.toList());
+        sortCommandStatuses(commandStatusList);
+
+        primaryStage.setTitle(commandStatusList.get(0).toString().toLowerCase() + " - " + PROGRAM_TITLE);
     }
 }

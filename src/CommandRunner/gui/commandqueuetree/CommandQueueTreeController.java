@@ -4,7 +4,7 @@ import CommandRunner.Command;
 import CommandRunner.CommandListener;
 import CommandRunner.CommandQueue;
 import CommandRunner.CommandQueueListener;
-import CommandRunner.gui.CommandStatus;
+import CommandRunner.CommandStatus;
 import javafx.animation.Animation;
 import javafx.animation.Interpolator;
 import javafx.animation.RotateTransition;

@@ -76,7 +76,7 @@ public class MainController implements Initializable {
 
     @FXML
     private void runSelected(Event event) {
-        commandTableController.runSelected(commandQueueTreeController);
+        commandTableController.runSelected(commandQueueTreeController, CommandRunner.getInstance());
     }
 
     @FXML
@@ -122,7 +122,7 @@ public class MainController implements Initializable {
     }
 
     private void runSelectedInParallel() {
-        commandTableController.runSelectedInParallel(commandQueueTreeController);
+        commandTableController.runSelectedInParallel(commandQueueTreeController, CommandRunner.getInstance());
     }
 
     public void resetLayout(ActionEvent event) {

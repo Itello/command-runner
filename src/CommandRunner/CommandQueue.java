@@ -1,8 +1,10 @@
 package CommandRunner;
 
-import CommandRunner.gui.CommandStatus;
-
 import java.util.*;
+import java.util.stream.Collectors;
+
+import static CommandRunner.CommandStatus.RUNNING;
+import static CommandRunner.CommandStatus.sortCommandStatuses;
 
 public class CommandQueue implements CommandListener {
 
@@ -71,8 +73,8 @@ public class CommandQueue implements CommandListener {
     private void executeNextCommand() {
         Optional<Command> command = getCurrentCommand();
         if (command.isPresent()) {
-            listeners.forEach(listener -> listener.commandQueueIsProcessing(command.get()));
             new Thread(command.get()::execute).start();
+            listeners.forEach(listener -> listener.commandQueueIsProcessing(command.get()));
         } else {
             setStoppedState();
             listeners.forEach(listener -> listener.commandQueueFinished(this));
@@ -125,33 +127,17 @@ public class CommandQueue implements CommandListener {
     }
 
     public CommandStatus getCommandStatus() {
-        return commands.stream()
+        List<CommandStatus> commandStatusList = commands.stream()
                 .map(Command::getCommandStatus)
-                .sorted((s1, s2) -> {
-                    boolean firstRunning = s1.equals(CommandStatus.RUNNING);
-                    boolean secondRunning = s2.equals(CommandStatus.RUNNING);
-                    boolean firstFail = s1.equals(CommandStatus.FAIL);
-                    boolean firstIdle = s1.equals(CommandStatus.IDLE);
-                    boolean secondFail = s2.equals(CommandStatus.FAIL);
-                    boolean secondIdle = s2.equals(CommandStatus.IDLE);
-                    if (firstRunning && !secondRunning) {
-                        return -1;
-                    } else if (secondRunning && !firstRunning) {
-                        return 1;
-                    } else if (firstFail && !secondFail) {
-                        return -1;
-                    } else if (secondFail && !firstFail) {
-                        return 1;
-                    } else if (firstIdle && !secondIdle) {
-                        return -1;
-                    } else if (secondIdle && !firstIdle) {
-                        return 1;
-                    }
+                .collect(Collectors.toList());
 
-                    return 0;
-                })
-                .findFirst()
-                .orElseThrow(() -> new IllegalStateException("Queue without commands"));
+        sortCommandStatuses(commandStatusList);
+        CommandStatus commandStatus = commandStatusList.get(0);
+        if (commandStatus == CommandStatus.IDLE && this.status == CommandQueueStatus.Running) {
+            // case where we started queue but command didn't have time to set up yet
+            return CommandStatus.RUNNING;
+        }
+        return commandStatus;
     }
 
     private boolean isCommandInCommandQueue(Command command) {

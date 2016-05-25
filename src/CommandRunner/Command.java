@@ -1,6 +1,5 @@
 package CommandRunner;
 
-import CommandRunner.gui.CommandStatus;
 import javafx.application.Platform;
 
 import java.io.BufferedReader;
