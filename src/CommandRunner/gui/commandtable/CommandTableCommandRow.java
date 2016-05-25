@@ -1,7 +1,6 @@
 package CommandRunner.gui.commandtable;
 
 import CommandRunner.Command;
-import CommandRunner.gui.CommandStatus;
 import javafx.beans.property.SimpleStringProperty;
 
 public class CommandTableCommandRow extends CommandTableRow {
@@ -12,7 +11,6 @@ public class CommandTableCommandRow extends CommandTableRow {
         super(
                 new SimpleStringProperty(command.getCommandNameAndArguments()),
                 new SimpleStringProperty(command.getCommandDirectory()),
-                new SimpleStringProperty(CommandStatus.IDLE.getStringValue()),
                 new SimpleStringProperty(command.getCommandComment())
         );
 

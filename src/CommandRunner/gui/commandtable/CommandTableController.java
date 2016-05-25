@@ -31,7 +31,6 @@ public class CommandTableController {
     public CommandTableController(TreeTableView<CommandTableRow> commandTable, TreeTableColumn<CommandTableRow, String> commandColumn, TreeTableColumn<CommandTableRow, String> directoryColumn, TreeTableColumn<CommandTableRow, String> commentColumn) {
         this.commandTable = commandTable;
         this.commandColumn = commandColumn;
-        // todo move all Table stuff to new class in commandTable package
 
         commandTable.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
 
@@ -200,27 +199,30 @@ public class CommandTableController {
     }
 
     private void moveRowsToIndex(int index, boolean copy, List<TreeItem<CommandTableRow>> dragRows, TreeItem<CommandTableRow> parent) {
-        if (dragRows == null) {
-            dragRows = getSelectedItems();
+        int rowIndex = index;
+        List<TreeItem<CommandTableRow>> rowsToDrag = dragRows;
+
+        if (rowsToDrag == null) {
+            rowsToDrag = getSelectedItems();
         }
 
         final List<TreeItem<CommandTableRow>> rowsToCopyOrMove;
         if (copy) {
-            rowsToCopyOrMove = deepCopyRows(dragRows);
+            rowsToCopyOrMove = deepCopyRows(rowsToDrag);
         } else {
-            rowsToCopyOrMove = new ArrayList<>(dragRows);
+            rowsToCopyOrMove = new ArrayList<>(rowsToDrag);
             rowsToCopyOrMove.forEach(row -> row.getParent().getChildren().remove(row));
         }
 
-        while (index > parent.getChildren().size()) {
-            index--;
+        while (rowIndex > parent.getChildren().size()) {
+            rowIndex--;
         }
 
-        if (index < 0) {
-            index = 0;
+        if (rowIndex < 0) {
+            rowIndex = 0;
         }
-        parent.getChildren().addAll(index, rowsToCopyOrMove);
-        final int indexToSelect = commandTable.getRow(rowsToCopyOrMove.get(0));
+        parent.getChildren().addAll(rowIndex, rowsToCopyOrMove);
+        int indexToSelect = commandTable.getRow(rowsToCopyOrMove.get(0));
         Platform.runLater(() -> {
             parent.setExpanded(true);
             List<Integer> indices = new ArrayList<>();
@@ -229,8 +231,6 @@ public class CommandTableController {
             }
             selectIndices(indices);
         });
-
-//        changesSinceLastSave++;
     }
 
     private void selectIndices(List<Integer> indices) {
@@ -355,6 +355,13 @@ public class CommandTableController {
         }
     }
 
+    public void runSelectedInParallel(CommandQueueListener... listeners) {
+        ObservableList<TreeItem<CommandTableRow>> selectedItems = getSelectedItems();
+        if (!selectedItems.isEmpty()) {
+            runCommandTreeItemsInParallel(selectedItems, listeners);
+        }
+    }
+
     public void runSelected(CommandQueueListener... listeners) {
         ObservableList<TreeItem<CommandTableRow>> selectedItems = getSelectedItems();
         if (!selectedItems.isEmpty()) {
@@ -364,6 +371,10 @@ public class CommandTableController {
 
     private void runCommandTreeItems(List<TreeItem<CommandTableRow>> treeItemsToRun, CommandQueueListener... listeners) {
         CommandRunner.getInstance().runCommandTreeItems(treeItemsToRun, listeners);
+    }
+
+    private void runCommandTreeItemsInParallel(List<TreeItem<CommandTableRow>> treeItemsToRun, CommandQueueListener... listeners) {
+        CommandRunner.getInstance().runCommandTreeItemsInParallel(treeItemsToRun, listeners);
     }
 
     public void keyboardMoveSelectedRows(int modifier) {
@@ -384,26 +395,6 @@ public class CommandTableController {
         fixGraphicHierarchically(commandTreeNode);
         commandTable.getRoot().setExpanded(true);
         commandTable.setShowRoot(false);
-
-        updateGroupStatuses(commandTable.getRoot());
-    }
-
-    private void updateGroupStatuses(TreeItem<CommandTableRow> node) {
-        node.getChildren().forEach(this::updateGroupStatuses);
-
-        if (node.getChildren().isEmpty()) {
-            return;
-        }
-
-        String status = node.getChildren().get(0).getValue().commandStatusProperty().get();
-        boolean sameStatus = !node.getChildren().stream()
-                .anyMatch(child -> !child.getValue().commandStatusProperty().get().equals(status));
-
-        if (sameStatus) {
-            node.getValue().setCommandStatus(status);
-        } else {
-            node.getValue().setCommandStatus("");
-        }
     }
 
     private TreeItem<CommandTableRow> copyTreeItem(TreeItem<CommandTableRow> treeItem) {

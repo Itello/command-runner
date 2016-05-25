@@ -121,6 +121,10 @@ public class MainController implements Initializable {
         removeCommandTableRow(event);
     }
 
+    private void runSelectedInParallel() {
+        commandTableController.runSelectedInParallel(commandQueueTreeController);
+    }
+
     public void resetLayout(ActionEvent event) {
         Stage primaryStage = CommandRunner.getInstance().getPrimaryStage();
 
@@ -158,7 +162,11 @@ public class MainController implements Initializable {
                 break;
             case ENTER:
                 if (commandTable.getEditingCell() == null) {
-                    runSelected(event);
+                    if (event.isControlDown()) {
+                        runSelectedInParallel();
+                    } else {
+                        runSelected(event);
+                    }
                 } else {
                     consume = false;
                 }

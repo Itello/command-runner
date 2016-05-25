@@ -19,6 +19,7 @@ import javafx.stage.WindowEvent;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -193,8 +194,7 @@ public class CommandRunner extends Application implements CommandQueueListener, 
     }
 
     public void runCommandTreeItems(List<TreeItem<CommandTableRow>> treeItemsToRun, CommandQueueListener... listeners) {
-        List<CommandTableCommandRow> commandTableRowsToRun = new ArrayList<>();
-        treeItemsToRun.forEach(item -> addAllCommandRowsForTreeItem(item, commandTableRowsToRun));
+        List<CommandTableCommandRow> commandTableRowsToRun = getCommandTableCommandRowsToRun(treeItemsToRun);
         CommandQueue commandQueue = new CommandQueue(listeners);
 
         commandQueue.setCommands(
@@ -207,6 +207,21 @@ public class CommandRunner extends Application implements CommandQueueListener, 
         commandQueue.start();
     }
 
+    private List<CommandTableCommandRow> getCommandTableCommandRowsToRun(List<TreeItem<CommandTableRow>> treeItemsToRun) {
+        List<CommandTableCommandRow> commandTableRowsToRun = new ArrayList<>();
+        treeItemsToRun.forEach(item -> addAllCommandRowsForTreeItem(item, commandTableRowsToRun));
+        return commandTableRowsToRun;
+    }
+
+    public void runCommandTreeItemsInParallel(List<TreeItem<CommandTableRow>> treeItemsToRun, CommandQueueListener... listeners) {
+        List<CommandTableCommandRow> commandTableRowsToRun = getCommandTableCommandRowsToRun(treeItemsToRun);
+
+        commandTableRowsToRun.forEach(row -> {
+            final CommandQueue commandQueue = new CommandQueue(listeners);
+            commandQueue.setCommands(Collections.singletonList(row.getCommand().copy()));
+            commandQueue.start();
+        });
+    }
 
     @Override
     public void commandQueueStarted(CommandQueue commandQueue) {
