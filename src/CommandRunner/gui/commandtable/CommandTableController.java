@@ -67,23 +67,10 @@ public class CommandTableController {
 
                         final Dragboard dragboard = event.getDragboard();
 
+                        TreeItem<CommandTableRow> toItem = cell.getTreeTableRow().getTreeItem();
                         if (isExternalSource(event) && dragboard.hasFiles()) {
-                            for (File file : dragboard.getFiles()) {
-                                try {
-                                    final String jsonFromFile = JSONFileReader.readJsonObjectFromFile(file);
-                                    if (jsonFromFile.startsWith("[")) {
-                                        JSONArray array = JsonConverter.convertFromJSONToArray(jsonFromFile);
-                                        final List<TreeItem<CommandTableRow>> nodes = JSONFileReader.createNodes(array);
-                                        moveRowsToItem(cell.getTreeTableRow().getTreeItem(), true, true, nodes);
-                                    } else {
-                                        JSONObject object = JsonConverter.convertFromJSONToObject(jsonFromFile);
-                                        final TreeItem<CommandTableRow> node = JSONFileReader.convertToNode(object);
-                                        moveRowsToItem(cell.getTreeTableRow().getTreeItem(), true, true, Collections.singletonList(node));
-                                    }
-                                } catch (JSONException e) {
-                                    e.printStackTrace();
-                                }
-                            }
+                            List<File> files = dragboard.getFiles();
+                            copyFilesToRows(toItem, files);
                         } else {
                             if (cell.getIndex() == dragStartIndex) {
                                 return;
@@ -99,9 +86,9 @@ public class CommandTableController {
                             }
 
                             if (copying) {
-                                copyRowsToItem(cell.getTreeTableRow().getTreeItem());
+                                copyRowsToItem(toItem);
                             } else {
-                                moveRowsToItem(cell.getTreeTableRow().getTreeItem(), true);
+                                moveRowsToItem(toItem, true);
                             }
                         }
 
@@ -115,25 +102,8 @@ public class CommandTableController {
 
                         if (selected != null && !selected.isEmpty()) {
                             Dragboard db = this.commandTable.startDragAndDrop(TransferMode.ANY);
-                            final ClipboardContent content = new ClipboardContent();
+                            final ClipboardContent content = createClipBoardContent(selected);
 
-                            try {
-                                File file = File.createTempFile(".commandRunner", ".json");
-                                PrintWriter printWriter = new PrintWriter(file, "UTF-8");
-                                if (selected.size() == 1) {
-                                    JSONObject jsonObject = JsonConverter.convertToJSON(selected.get(0));
-                                    printWriter.print(jsonObject.toString(2));
-                                } else {
-                                    JSONArray array = JsonConverter.convertToJSON(selected);
-                                    printWriter.print(array.toString(2));
-                                }
-                                printWriter.close();
-                                content.putFiles(Collections.singletonList(file));
-                            } catch (Exception e) {
-                                e.printStackTrace();
-                            }
-
-                            content.put(DataFormat.PLAIN_TEXT, "drag");
                             db.setContent(content);
                             dragStartIndex = cell.getIndex();
 
@@ -144,6 +114,25 @@ public class CommandTableController {
                     return cell;
                 }
         );
+    }
+
+    private void copyFilesToRows(TreeItem<CommandTableRow> toItem, List<File> files) {
+        for (File file : files) {
+            try {
+                final String jsonFromFile = JSONFileReader.readJsonObjectFromFile(file);
+                if (jsonFromFile.startsWith("[")) {
+                    JSONArray array = JsonConverter.convertFromJSONToArray(jsonFromFile);
+                    final List<TreeItem<CommandTableRow>> nodes = JSONFileReader.createNodes(array);
+                    moveRowsToItem(toItem, true, true, nodes);
+                } else {
+                    JSONObject object = JsonConverter.convertFromJSONToObject(jsonFromFile);
+                    final TreeItem<CommandTableRow> node = JSONFileReader.convertToNode(object);
+                    moveRowsToItem(toItem, true, true, Collections.singletonList(node));
+                }
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+        }
     }
 
     private ObservableList<TreeItem<CommandTableRow>> getSelectedItems() {
@@ -288,7 +277,7 @@ public class CommandTableController {
         editRow(commandTable.getRow(group));
     }
 
-    public void removeCommandTableRow() {
+    public void removeSelectedCommandTableRows() {
         final ArrayList<TreeItem<CommandTableRow>> commandTableRows = new ArrayList<>(getSelectedItems());
 
         getSelectedItems().stream()
@@ -438,5 +427,57 @@ public class CommandTableController {
 
     public TreeItem<CommandTableRow> getRoot() {
         return commandTable.getRoot();
+    }
+
+    public void copySelectedToClipBoard() {
+        ObservableList<TreeItem<CommandTableRow>> selected = getSelectedItems();
+        if (selected != null && !selected.isEmpty()) {
+            final ClipboardContent content = createClipBoardContent(selected);
+            Clipboard clipboard = Clipboard.getSystemClipboard();
+            clipboard.setContent(content);
+        }
+    }
+
+    private ClipboardContent createClipBoardContent(ObservableList<TreeItem<CommandTableRow>> selected) {
+        final ClipboardContent content = new ClipboardContent();
+
+        try {
+            File file = File.createTempFile(".commandRunner", ".json");
+            PrintWriter printWriter = new PrintWriter(file, "UTF-8");
+            if (selected.size() == 1) {
+                JSONObject jsonObject = JsonConverter.convertToJSON(selected.get(0));
+                printWriter.print(jsonObject.toString(2));
+            } else {
+                JSONArray array = JsonConverter.convertToJSON(selected);
+                printWriter.print(array.toString(2));
+            }
+            printWriter.close();
+            content.putFiles(Collections.singletonList(file));
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return content;
+    }
+
+    public void cutSelectedToClipBoard() {
+        copySelectedToClipBoard();
+        removeSelectedCommandTableRows();
+    }
+
+    public void pasteSelectedToClipBoard() {
+        Clipboard clipboard = Clipboard.getSystemClipboard();
+
+        List<File> files = clipboard.getFiles();
+        TreeItem<CommandTableRow> toItem;
+        ObservableList<TreeItem<CommandTableRow>> selectedItems = getSelectedItems();
+        if (selectedItems != null && !selectedItems.isEmpty()) {
+            toItem = selectedItems.get(0);
+        } else {
+            toItem = getRoot();
+        }
+
+        if (files != null && !files.isEmpty()) {
+            copyFilesToRows(toItem, files);
+        }
     }
 }

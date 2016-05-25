@@ -66,11 +66,11 @@ public class MainController implements Initializable {
 
     @FXML
     private void removeCommandTableRow(Event event) {
-        commandTableController.removeCommandTableRow();
+        commandTableController.removeSelectedCommandTableRows();
     }
 
     @FXML
-    private void addCommandTableRow(ActionEvent event) {
+    private void addCommandTableRow(Event event) {
         commandTableController.addCommandTableRow();
     }
 
@@ -80,7 +80,7 @@ public class MainController implements Initializable {
     }
 
     @FXML
-    private void save(ActionEvent event) {
+    private void save(Event event) {
         CommandRunner.getInstance().save(getRoot());
     }
 
@@ -177,6 +177,31 @@ public class MainController implements Initializable {
             case PAGE_DOWN:
                 commandTableController.keyboardMoveSelectedRows(1);
                 break;
+            case S:
+                if (event.isControlDown()) {
+                    save(event);
+                    break;
+                }
+            case C:
+                if (event.isControlDown()) {
+                    commandTableController.copySelectedToClipBoard();
+                    break;
+                }
+            case X:
+                if (event.isControlDown()) {
+                    commandTableController.cutSelectedToClipBoard();
+                    break;
+                }
+            case V:
+                if (event.isControlDown()) {
+                    commandTableController.pasteSelectedToClipBoard();
+                    break;
+                }
+            case N:
+                if (event.isControlDown()) {
+                    addCommandTableRow(event);
+                    break;
+                }
             default:
                 consume = false;
         }
