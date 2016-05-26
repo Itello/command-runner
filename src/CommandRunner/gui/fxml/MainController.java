@@ -2,6 +2,7 @@ package CommandRunner.gui.fxml;
 
 import CommandRunner.CommandRunner;
 import CommandRunner.gui.LayoutChangedListener;
+import CommandRunner.gui.StatusBarController;
 import CommandRunner.gui.WindowLayout;
 import CommandRunner.gui.commandqueuetree.CommandQueueTreeController;
 import CommandRunner.gui.commandqueuetree.CommandQueueTreeRow;
@@ -13,6 +14,8 @@ import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.*;
 import javafx.scene.input.KeyEvent;
+import javafx.scene.layout.HBox;
+import javafx.scene.shape.Rectangle;
 import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
 
@@ -42,17 +45,28 @@ public class MainController implements Initializable {
     private TreeTableColumn<CommandTableRow, String> commentColumn;
     @FXML
     private TextArea commandOutputArea;
+    @FXML
+    private HBox statusBar;
+    @FXML
+    private Rectangle memoryBar;
+    @FXML
+    private Label memoryLabel;
 
     private CommandQueueTreeController commandQueueTreeController;
     private CommandTableController commandTableController;
     private List<LayoutChangedListener> layoutChangeListeners;
+    private StatusBarController statusBarController;
 
     @Override
     public void initialize(URL fxmlFileLocation, ResourceBundle resources) {
+
+        System.out.println("javafx.runtime.version: " + System.getProperties().get("javafx.runtime.version"));
         assert commandTable != null : "fx:id=\"commandTable\" was not injected: check FXML file 'main .fxml'.";
         commandTableController = new CommandTableController(commandTable, commandColumn, directoryColumn, commentColumn);
         commandQueueTreeController = new CommandQueueTreeController(commandQueueTreeView, commandOutputArea);
         commandTable.addEventFilter(KeyEvent.KEY_PRESSED, this::tableKeyPressed);
+        statusBarController = new StatusBarController();
+        statusBarController.doStuff(memoryBar, memoryLabel);
 
         layoutChangeListeners = new ArrayList<>();
         CommandRunner.getInstance().controllerLoaded(this);
@@ -121,7 +135,8 @@ public class MainController implements Initializable {
         removeCommandTableRow(event);
     }
 
-    private void runSelectedInParallel() {
+    @FXML
+    private void runSelectedInParallel(Event event) {
         commandTableController.runSelectedInParallel(commandQueueTreeController);
     }
 
@@ -163,7 +178,7 @@ public class MainController implements Initializable {
             case ENTER:
                 if (commandTable.getEditingCell() == null) {
                     if (event.isControlDown()) {
-                        runSelectedInParallel();
+                        runSelectedInParallel(event);
                     } else {
                         runSelected(event);
                     }
