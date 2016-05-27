@@ -31,12 +31,13 @@ public class CommandRunner extends Application implements CommandQueueListener, 
 
     private static final String SETTINGS_FXML = "gui/fxml/settings.fxml";
     private static final String ABOUT_FXML = "gui/fxml/about.fxml";
+    private static final String VARIABLE_SYMBOL = "#";
 
     private static CommandRunner instance = null;
 
     private final ProgramState programState;
-
     private String runCommand = null;
+    private String variables = null;
     private Stage primaryStage;
     private TreeItem<CommandTableRow> rootNode;
     private boolean runningWithParameters = false;
@@ -66,6 +67,7 @@ public class CommandRunner extends Application implements CommandQueueListener, 
         final Parameters parameters = getParameters();
         final Map<String, String> namedParameters = parameters.getNamed();
         runCommand = namedParameters.get("run");
+        variables = namedParameters.get("variables");
     }
 
     @Override
@@ -74,8 +76,8 @@ public class CommandRunner extends Application implements CommandQueueListener, 
         rootNode = loadSettings();
 
         if (runCommand != null) {
-            runCommand(runCommand);
             runningWithParameters = true;
+            runCommand(runCommand, variables);
         } else {
             Parent root = FXMLLoader.load(getClass().getResource("gui/fxml/main.fxml"));
             primaryStage.setTitle(PROGRAM_TITLE);
@@ -179,11 +181,11 @@ public class CommandRunner extends Application implements CommandQueueListener, 
         return programState;
     }
 
-    private void runCommand(String commandComment) {
-        runAllCommandsWithComment(commandComment, loadSettings());
+    private void runCommand(String commandComment, String variables) {
+        runAllCommandsWithCommentAndVariables(commandComment, variables, loadSettings());
     }
 
-    private void runAllCommandsWithComment(String comment, TreeItem<CommandTableRow> root) {
+    private void runAllCommandsWithCommentAndVariables(String comment, String variables, TreeItem<CommandTableRow> root) {
         if (comment == null || comment.equals("")) {
             return;
         }
@@ -192,7 +194,46 @@ public class CommandRunner extends Application implements CommandQueueListener, 
                 .filter(commandItem -> commandItem.getValue().commandCommentProperty().getValue().equals(comment))
                 .collect(Collectors.toList());
 
+        Deque<TreeItem<CommandTableRow>> commandRowsToReplace = new ArrayDeque<>();
+        commandRowsToReplace.addAll(commandsWithComment);
+        while (!commandRowsToReplace.isEmpty()) {
+            TreeItem<CommandTableRow> node = commandRowsToReplace.pop();
+            commandRowsToReplace.addAll(node.getChildren());
+            replaceCommandAndDirectoryWithVariables(variables, node);
+        }
+
         runCommandTreeItems(commandsWithComment, this);
+    }
+
+    private void replaceCommandAndDirectoryWithVariables(String variables, TreeItem<CommandTableRow> commandWithComment) {
+        Map<String, String> variableMap = getVariableMap(variables);
+        if (!variableMap.isEmpty()) {
+            CommandTableRow value = commandWithComment.getValue();
+            value.setCommandNameAndArguments(replaceVariables(value.commandNameAndArgumentsProperty().getValue(), variableMap));
+            value.setCommandDirectory(replaceVariables(value.commandDirectoryProperty().getValue(), variableMap));
+        }
+    }
+
+    private String replaceVariables(String value, Map<String, String> variableMap) {
+        String returnValue = value;
+        for (Map.Entry<String, String> entry : variableMap.entrySet()) {
+            returnValue = returnValue.replaceAll(VARIABLE_SYMBOL + entry.getKey(), entry.getValue());
+        }
+
+        return returnValue;
+    }
+
+    private Map<String, String> getVariableMap(String variables) {
+        if (variables == null || variables.isEmpty()) {
+            return new HashMap<>();
+        }
+
+        Map<String, String> variableMap = new HashMap<>();
+        Arrays.stream(variables.split(","))
+                .map(entry -> entry.split("="))
+                .forEach(kvPair -> variableMap.put(kvPair[0], kvPair[1]));
+
+        return variableMap;
     }
 
     public void runCommandTreeItems(List<TreeItem<CommandTableRow>> treeItemsToRun, CommandQueueListener... listeners) {
@@ -227,7 +268,7 @@ public class CommandRunner extends Application implements CommandQueueListener, 
 
     @Override
     public void commandQueueStarted(CommandQueue commandQueue) {
-        if (! runningWithParameters) {
+        if (!runningWithParameters) {
             runningQueues.addFirst(commandQueue);
             setTitleWithCommandQueueStatus();
         }
@@ -235,7 +276,7 @@ public class CommandRunner extends Application implements CommandQueueListener, 
 
     @Override
     public void commandQueueFinished(CommandQueue commandQueue) {
-        if (! runningWithParameters) {
+        if (!runningWithParameters) {
             setTitleWithCommandQueueStatus();
             runningQueues.remove(commandQueue);
         } else {
@@ -245,7 +286,7 @@ public class CommandRunner extends Application implements CommandQueueListener, 
 
     @Override
     public void commandQueueIsProcessing(Command command) {
-        if (! runningWithParameters) {
+        if (!runningWithParameters) {
             setTitleWithCommandQueueStatus();
         } else {
             System.out.println("--- executing " + command.getCommandNameAndArguments() + " ----");
