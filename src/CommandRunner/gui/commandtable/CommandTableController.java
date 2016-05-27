@@ -36,7 +36,9 @@ public class CommandTableController {
 
         commandColumn.setCellValueFactory(cellData -> cellData.getValue().getValue().commandNameAndArgumentsProperty());
 
+
         commentColumn.setCellValueFactory(cellData -> cellData.getValue().getValue().commandCommentProperty());
+
         directoryColumn.setCellValueFactory(cellData -> cellData.getValue().getValue().commandDirectoryProperty());
 
         setToolTipLabel(directoryColumn, "Starting directory (NOT command location)");
@@ -479,5 +481,14 @@ public class CommandTableController {
         if (files != null && !files.isEmpty()) {
             copyFilesToRows(toItem, files);
         }
+    }
+
+    public boolean editSelected() {
+        if (getSelectedItems().size() == 1) {
+            editRow(commandTable.getRow(getSelectedItems().get(0)));
+            return true;
+        }
+
+        return false;
     }
 }

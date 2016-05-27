@@ -138,7 +138,7 @@ public class CommandRunner extends Application implements CommandQueueListener, 
         Parent root = loader.load();
         Stage settingsStage = new Stage();
         settingsStage.setTitle("ProgramState");
-        settingsStage.getIcons().add(new Image("png/icon.png"));
+        settingsStage.getIcons().add(new Image("png/command.png"));
         settingsStage.setScene(createScene(root));
         settingsStage.show();
     }
@@ -267,7 +267,7 @@ public class CommandRunner extends Application implements CommandQueueListener, 
         Parent root = loader.load();
         Stage settingsStage = new Stage();
         settingsStage.setTitle("About");
-        settingsStage.getIcons().add(new Image("png/icon.png"));
+        settingsStage.getIcons().add(new Image("png/command.png"));
         settingsStage.setScene(createScene(root));
         settingsStage.show();
     }

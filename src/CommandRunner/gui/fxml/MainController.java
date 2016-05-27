@@ -55,7 +55,6 @@ public class MainController implements Initializable {
     private CommandQueueTreeController commandQueueTreeController;
     private CommandTableController commandTableController;
     private List<LayoutChangedListener> layoutChangeListeners;
-    private StatusBarController statusBarController;
 
     @Override
     public void initialize(URL fxmlFileLocation, ResourceBundle resources) {
@@ -65,7 +64,7 @@ public class MainController implements Initializable {
         commandTableController = new CommandTableController(commandTable, commandColumn, directoryColumn, commentColumn);
         commandQueueTreeController = new CommandQueueTreeController(commandQueueTreeView, commandOutputArea);
         commandTable.addEventFilter(KeyEvent.KEY_PRESSED, this::tableKeyPressed);
-        statusBarController = new StatusBarController();
+        StatusBarController statusBarController = new StatusBarController();
         statusBarController.doStuff(memoryBar, memoryLabel);
 
         layoutChangeListeners = new ArrayList<>();
@@ -144,7 +143,8 @@ public class MainController implements Initializable {
         Stage primaryStage = CommandRunner.getInstance().getPrimaryStage();
 
         primaryStage.setWidth(DEFAULT_LAYOUT.getWindowWidth());
-        primaryStage.setHeight(DEFAULT_LAYOUT.getWindowWidth());
+        primaryStage.setHeight(DEFAULT_LAYOUT.getWindowHeight());
+        primaryStage.setMaximized(false);
         primaryStage.centerOnScreen();
 
         verticalSplitPane.setDividerPosition(0, DEFAULT_LAYOUT.getVerticalDividerPosition());
@@ -217,6 +217,9 @@ public class MainController implements Initializable {
                     addCommandTableRow(event);
                     break;
                 }
+            case F2:
+                consume = commandTableController.editSelected();
+                break;
             default:
                 consume = false;
         }
