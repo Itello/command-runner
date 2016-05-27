@@ -175,35 +175,33 @@ public class CommandQueueTreeController implements CommandListener, CommandQueue
     }
 
     private boolean isCommandSelected(Command command) {
-        return selectedAndRunningCommandRows().anyMatch(row -> row.getCommand().equals(command)) ||
-                selectedAndRunningCommandQueueRows().anyMatch(row -> row.getCommandQueue().getCommands().contains(command));
+        return selectedCommandRows().anyMatch(row -> row.getCommand().equals(command)) ||
+                selectedCommandQueueRows().anyMatch(row -> row.getCommandQueue().getCommands().contains(command));
     }
 
-    private Stream<CommandQueueTreeCommandRow> selectedAndRunningCommandRows() {
+    private Stream<CommandQueueTreeCommandRow> selectedCommandRows() {
         return commandQueueTreeView.getSelectionModel().getSelectedItems().stream()
                 .filter(item -> item != null)
                 .map(TreeItem::getValue)
                 .filter(row -> row instanceof CommandQueueTreeCommandRow)
-                .map(row -> (CommandQueueTreeCommandRow) row)
-                .filter(row -> row.getCommand().getCommandStatus().equals(CommandStatus.RUNNING));
+                .map(row -> (CommandQueueTreeCommandRow) row);
     }
 
-    private Stream<CommandQueueTreeCommandQueueRow> selectedAndRunningCommandQueueRows() {
+    private Stream<CommandQueueTreeCommandQueueRow> selectedCommandQueueRows() {
         return commandQueueTreeView.getSelectionModel().getSelectedItems().stream()
                 .filter(item -> item != null)
                 .map(TreeItem::getValue)
                 .filter(row -> row instanceof CommandQueueTreeCommandQueueRow)
-                .map(row -> (CommandQueueTreeCommandQueueRow) row)
-                .filter(row -> row.getCommandQueue().getCommandStatus().equals(CommandStatus.RUNNING));
+                .map(row -> (CommandQueueTreeCommandQueueRow) row);
     }
 
     public void killSelected() {
-        selectedAndRunningCommandRows().forEach(row -> row.getCommand().kill());
-        selectedAndRunningCommandQueueRows().forEach(row -> row.getCommandQueue().kill());
+        selectedCommandRows().forEach(row -> row.getCommand().kill());
+        selectedCommandQueueRows().forEach(row -> row.getCommandQueue().kill());
     }
 
     public void stopSelected() {
-        selectedAndRunningCommandQueueRows().forEach(row -> row.getCommandQueue().stopWhenCurrentCommandFinishes());
+        selectedCommandQueueRows().forEach(row -> row.getCommandQueue().stopWhenCurrentCommandFinishes());
     }
 
     public void clearQueue() {

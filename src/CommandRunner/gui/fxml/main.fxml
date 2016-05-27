@@ -15,12 +15,24 @@
 <?import javafx.scene.control.TreeTableColumn?>
 <?import javafx.scene.control.TreeTableView?>
 <?import javafx.scene.control.TreeView?>
+<?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.shape.Rectangle?>
 
-<VBox maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="768.0" prefWidth="1024.0" xmlns="http://javafx.com/javafx/8.0.60" xmlns:fx="http://javafx.com/fxml/1" fx:controller="CommandRunner.gui.fxml.MainController">
+<?import javafx.scene.image.Image?>
+<VBox maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="768.0" prefWidth="1024.0" xmlns="http://javafx.com/javafx/8.0.65" xmlns:fx="http://javafx.com/fxml/1" fx:controller="CommandRunner.gui.fxml.MainController">
+    <fx:define>
+        <Image fx:id="playImage" url="png/play.png" />
+        <Image fx:id="playParallelImage" url="png/playParallel.png" />
+        <Image fx:id="addImage" url="png/add.png" />
+        <Image fx:id="folderImage" url="png/folder.png" />
+        <Image fx:id="removeImage" url="png/remove.png" />
+        <Image fx:id="killImage" url="png/kill.png" />
+        <Image fx:id="stopImage" url="png/stop.png" />
+        <Image fx:id="clearImage" url="png/clear.png" />
+    </fx:define>
     <MenuBar>
         <Menu mnemonicParsing="false" text="File">
             <MenuItem mnemonicParsing="false" onAction="#save" text="Save" />
@@ -46,28 +58,56 @@
                     <VBox layoutX="88.0" layoutY="-21.0" prefHeight="200.0" prefWidth="100.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
                         <ButtonBar prefHeight="30.0" prefWidth="200.0" VBox.vgrow="NEVER">
                             <buttons>
-                                <HBox alignment="CENTER" maxWidth="1.7976931348623157E308" minWidth="0.0" prefHeight="30.0" prefWidth="9999.0">
+                                <HBox alignment="CENTER" maxHeight="30.0" maxWidth="1.7976931348623157E308" minWidth="0.0" prefHeight="30.0" prefWidth="9999.0">
                                     <Separator minWidth="0.0" visible="false" HBox.hgrow="ALWAYS" />
-                                    <Button alignment="CENTER" contentDisplay="CENTER" minWidth="30.0" mnemonicParsing="false" onAction="#runSelected" text="&gt;" textAlignment="CENTER">
+                                    <Button alignment="CENTER" contentDisplay="CENTER" maxHeight="25.0" maxWidth="25.0" minWidth="30.0" mnemonicParsing="false" onAction="#runSelected" textAlignment="CENTER">
+                                        <graphic>
+                                            <ImageView image="$playImage"/>
+                                        </graphic>
                                         <HBox.margin>
                                             <Insets left="5.0" right="5.0" />
                                         </HBox.margin>
+                                        <tooltip>
+                                            <Tooltip text="Run selected" />
+                                        </tooltip>
                                     </Button>
-                           <Button alignment="CENTER" contentDisplay="CENTER" minWidth="30.0" mnemonicParsing="false" onAction="#runSelectedInParallel" text="&gt;&gt;" textAlignment="CENTER" />
-                                    <Button alignment="CENTER" contentDisplay="CENTER" depthTest="DISABLE" minWidth="30.0" mnemonicParsing="false" onAction="#addCommandTableRow" text="+">
-                                        <HBox.margin>
-                                            <Insets left="5.0" right="5.0" />
-                                        </HBox.margin>
+                           <Button alignment="CENTER" contentDisplay="CENTER" maxWidth="25.0" minWidth="30.0" mnemonicParsing="false" onAction="#runSelectedInParallel" textAlignment="CENTER">
+                                    <graphic>
+                                        <ImageView image="$playParallelImage"/>
+                                    </graphic>
                                     </Button>
-                                    <Button alignment="CENTER" contentDisplay="CENTER" depthTest="DISABLE" minWidth="30.0" mnemonicParsing="false" onAction="#addSelectedItemsToGroup" text="G">
+                                    <Button alignment="CENTER" contentDisplay="CENTER" depthTest="DISABLE" maxWidth="25.0" minWidth="30.0" mnemonicParsing="false" onAction="#addCommandTableRow">
+                                        <graphic>
+                                            <ImageView image="$addImage"/>
+                                        </graphic>
                                         <HBox.margin>
                                             <Insets left="5.0" right="5.0" />
                                         </HBox.margin>
+                                        <tooltip>
+                                            <Tooltip text="Run selected in parallel" />
+                                        </tooltip>
                                     </Button>
-                                    <Button alignment="CENTER" contentDisplay="CENTER" depthTest="DISABLE" minWidth="30.0" mnemonicParsing="false" onAction="#deleteSelectedFromTable" text="x">
+                                    <Button alignment="CENTER" contentDisplay="CENTER" depthTest="DISABLE" maxWidth="25.0" minWidth="30.0" mnemonicParsing="false" onAction="#addSelectedItemsToGroup">
+                                        <graphic>
+                                            <ImageView image="$folderImage"/>
+                                        </graphic>
                                         <HBox.margin>
                                             <Insets left="5.0" right="5.0" />
                                         </HBox.margin>
+                                        <tooltip>
+                                            <Tooltip text="Add selected to group" />
+                                        </tooltip>
+                                    </Button>
+                                    <Button alignment="CENTER" contentDisplay="CENTER" depthTest="DISABLE" maxWidth="25.0" minWidth="30.0" mnemonicParsing="false" onAction="#deleteSelectedFromTable">
+                                        <graphic>
+                                            <ImageView image="$removeImage"/>
+                                        </graphic>
+                                        <HBox.margin>
+                                            <Insets left="5.0" right="5.0" />
+                                        </HBox.margin>
+                                        <tooltip>
+                                            <Tooltip text="Remove selected" />
+                                        </tooltip>
                                     </Button>
                                     <Separator minWidth="0.0" visible="false" HBox.hgrow="ALWAYS" />
                                 </HBox>
@@ -106,20 +146,38 @@
                                         <Insets left="-5.0" />
                                     </padding>
                                     <Separator minWidth="0.0" visible="false" HBox.hgrow="ALWAYS" />
-                                    <Button alignment="CENTER" contentDisplay="CENTER" depthTest="DISABLE" minWidth="30.0" mnemonicParsing="false" onAction="#kill" text="K">
+                                    <Button alignment="CENTER" contentDisplay="CENTER" depthTest="DISABLE" maxWidth="25.0" minWidth="30.0" mnemonicParsing="false" onAction="#kill">
+                                        <graphic>
+                                            <ImageView image="$killImage"/>
+                                        </graphic>
                                         <HBox.margin>
                                             <Insets left="5.0" right="5.0" />
                                         </HBox.margin>
+                                        <tooltip>
+                                            <Tooltip text="Kill selected" />
+                                        </tooltip>
                                     </Button>
-                                    <Button alignment="CENTER" contentDisplay="CENTER" depthTest="DISABLE" minWidth="30.0" mnemonicParsing="false" onAction="#stop" text="S">
+                                    <Button alignment="CENTER" contentDisplay="CENTER" depthTest="DISABLE" maxWidth="25.0" minWidth="30.0" mnemonicParsing="false" onAction="#stop">
+                                        <graphic>
+                                            <ImageView image="$stopImage"/>
+                                        </graphic>
                                         <HBox.margin>
                                             <Insets left="5.0" right="5.0" />
                                         </HBox.margin>
+                                        <tooltip>
+                                            <Tooltip text="Stop selected" />
+                                        </tooltip>
                                     </Button>
-                                    <Button alignment="CENTER" contentDisplay="CENTER" depthTest="DISABLE" minWidth="30.0" mnemonicParsing="false" onAction="#clearQueue" text="C">
+                                    <Button alignment="CENTER" contentDisplay="CENTER" depthTest="DISABLE" maxWidth="25.0" minWidth="30.0" mnemonicParsing="false" onAction="#clearQueue">
+                                        <graphic>
+                                            <ImageView image="$clearImage"/>
+                                        </graphic>
                                         <HBox.margin>
                                             <Insets left="5.0" right="5.0" />
                                         </HBox.margin>
+                                        <tooltip>
+                                            <Tooltip text="Clear" />
+                                        </tooltip>
                                     </Button>
                                     <Separator minWidth="0.0" visible="false" HBox.hgrow="ALWAYS" />
                                 </HBox>

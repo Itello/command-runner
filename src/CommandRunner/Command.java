@@ -92,7 +92,6 @@ public class Command {
                     )
             );
             this.commandStatus = CommandStatus.FAIL;
-            e.printStackTrace();
         } finally {
             Platform.runLater(
                     () -> {
@@ -104,7 +103,7 @@ public class Command {
     }
 
     public void kill() {
-        if (process == null) {
+        if (process == null || !process.isAlive()) {
             return;
         }
 
