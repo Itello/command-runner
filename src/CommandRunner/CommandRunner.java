@@ -79,7 +79,7 @@ public class CommandRunner extends Application implements CommandQueueListener, 
         } else {
             Parent root = FXMLLoader.load(getClass().getResource("gui/fxml/main.fxml"));
             primaryStage.setTitle(PROGRAM_TITLE);
-            primaryStage.getIcons().add(new Image("png/icon.png"));
+            primaryStage.getIcons().add(new Image("png/command.png"));
             primaryStage.setScene(createScene(root));
             primaryStage.setOnCloseRequest(this::onClose);
             WindowLayout windowLayout = programState.getWindowLayout();
