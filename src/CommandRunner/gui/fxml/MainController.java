@@ -73,7 +73,6 @@ public class MainController implements Initializable {
 
     @FXML
     private void addSelectedItemsToGroup(Event event) {
-        // TODO: Bug, when on the last row and creating a group, group moves up one row
         commandTableController.addSelectedItemsToGroup();
     }
 
@@ -217,8 +216,19 @@ public class MainController implements Initializable {
                     addCommandTableRow(event);
                     break;
                 }
+            case G:
+                if (event.isControlDown()) {
+                    addSelectedItemsToGroup(event);
+                    break;
+                }
             case F2:
-                consume = commandTableController.editSelected();
+                if (event.isShiftDown()) {
+                    consume = commandTableController.editSelected(directoryColumn);
+                } else if (event.isControlDown()) {
+                    consume = commandTableController.editSelected(commentColumn);
+                } else {
+                    consume = commandTableController.editSelected(commandColumn);
+                }
                 break;
             default:
                 consume = false;

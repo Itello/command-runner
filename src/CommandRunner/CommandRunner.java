@@ -27,7 +27,7 @@ import static CommandRunner.gui.commandtable.CommandTableRowTreeItemListManipula
 
 public class CommandRunner extends Application implements CommandQueueListener, CommandListener {
     public static final String PROGRAM_TITLE = "Command Runner";
-    public static final String PROGRAM_VERSION = "0.2";
+    public static final String PROGRAM_VERSION = "0.2b";
 
     private static final String SETTINGS_FXML = "gui/fxml/settings.fxml";
     private static final String ABOUT_FXML = "gui/fxml/about.fxml";
@@ -139,7 +139,7 @@ public class CommandRunner extends Application implements CommandQueueListener, 
         FXMLLoader loader = getFXML(SETTINGS_FXML);
         Parent root = loader.load();
         Stage settingsStage = new Stage();
-        settingsStage.setTitle("ProgramState");
+        settingsStage.setTitle("Settings");
         settingsStage.getIcons().add(new Image("png/command.png"));
         settingsStage.setScene(createScene(root));
         settingsStage.show();

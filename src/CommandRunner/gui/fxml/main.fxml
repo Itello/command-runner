@@ -154,7 +154,7 @@
                                             <Insets left="5.0" right="5.0" />
                                         </HBox.margin>
                                         <tooltip>
-                                            <Tooltip text="Kill selected" />
+                                            <Tooltip text="Kill (maybe) [will fix in java 9 version]" />
                                         </tooltip>
                                     </Button>
                                     <Button alignment="CENTER" contentDisplay="CENTER" depthTest="DISABLE" maxWidth="25.0" minWidth="30.0" mnemonicParsing="false" onAction="#stop">
@@ -193,10 +193,8 @@
         </AnchorPane>
         <AnchorPane minHeight="0.0" minWidth="0.0">
          <VBox prefHeight="200.0" prefWidth="100.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
-            <children>
                    <TextArea fx:id="commandOutputArea" editable="false" minWidth="0.0" prefWidth="9999.0" text="Program started" VBox.vgrow="ALWAYS" />
                <HBox fx:id="statusBar" maxHeight="20.0" nodeOrientation="RIGHT_TO_LEFT" prefHeight="20.0" prefWidth="9999.0" VBox.vgrow="NEVER">
-                  <children>
                      <Rectangle fx:id="memoryBar" arcHeight="5.0" arcWidth="5.0" fill="TRANSPARENT" height="16.0" nodeOrientation="LEFT_TO_RIGHT" stroke="BLACK" strokeType="INSIDE" width="400.0">
                         <HBox.margin>
                            <Insets bottom="2.0" left="10.0" right="10.0" top="2.0" />
@@ -206,13 +204,8 @@
                         <HBox.margin>
                            <Insets />
                         </HBox.margin>
-                        <tooltip>
-                           <Tooltip fx:id="memoryTooltip" text="Memory" />
-                        </tooltip>
                      </Label>
-                  </children>
                </HBox>
-            </children>
          </VBox>
         </AnchorPane>
     </SplitPane>

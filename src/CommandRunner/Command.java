@@ -9,7 +9,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Command {
-
     private String commandNameAndArguments;
     private String commandDirectory;
     private String parentCommandDirectory;
@@ -107,11 +106,15 @@ public class Command {
             return;
         }
 
-        // TODO: Does not always kill. Need JNA for that.
-        process.destroyForcibly();
-        if (!process.isAlive()) {
-            commandStatus = CommandStatus.IDLE;
-            commandListeners.forEach(listener -> listener.commandExecuted(this));
+        try {
+            process.destroyForcibly();
+            process.waitFor();
+            if (!process.isAlive()) {
+                commandStatus = CommandStatus.IDLE;
+                commandListeners.forEach(listener -> listener.commandExecuted(this));
+            }
+        } catch (Exception e1) {
+            e1.printStackTrace();
         }
     }
 

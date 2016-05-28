@@ -16,8 +16,6 @@ import javafx.scene.shape.Rectangle;
 import javafx.util.Duration;
 
 public class StatusBarController {
-//    private Label clock;
-
     public void doStuff(Rectangle memoryBar, Label memoryLabel) {
         memoryBar.addEventHandler(MouseEvent.MOUSE_CLICKED, event -> {
             if(event.getButton().equals(MouseButton.PRIMARY) && event.getClickCount() == 2) {
@@ -32,9 +30,6 @@ public class StatusBarController {
 
         Timeline updater = new Timeline(
                 new KeyFrame(Duration.seconds(1), event -> {
-//                    clock.setText(String.format("%1$tA, %1$te %1$tB %1$tY  %1$tR", System.currentTimeMillis()));
-
-
                     long totalMemory = runtime.totalMemory();
                     long usedMemory = totalMemory - runtime.freeMemory();
 

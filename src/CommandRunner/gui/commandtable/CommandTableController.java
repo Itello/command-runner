@@ -266,7 +266,8 @@ public class CommandTableController {
 
         selectedItems.forEach(selectedItem -> selectedItem.getParent().getChildren().remove(selectedItem));
         selectedItems.forEach(selectedItem -> group.getChildren().add(selectedItem));
-        while (moveToIndex >= parent.getChildren().size()) {
+        group.setExpanded(true);
+        while (moveToIndex > parent.getChildren().size()) {
             moveToIndex--;
         }
 
@@ -276,7 +277,7 @@ public class CommandTableController {
 
         commandTable.getSelectionModel().clearSelection();
         parent.getChildren().add(moveToIndex, group);
-        editRow(commandTable.getRow(group));
+        editRow(commandTable.getRow(group), commandColumn);
     }
 
     public void removeSelectedCommandTableRows() {
@@ -329,13 +330,13 @@ public class CommandTableController {
 
         commandTable.getRoot().getChildren().add(treeItem);
         fixGraphic(treeItem);
-        editRow(commandTable.getRow(treeItem));
+        editRow(commandTable.getRow(treeItem), commandColumn);
     }
 
-    private void editRow(int row) {
+    private void editRow(int row, TreeTableColumn<CommandTableRow, String> column) {
         // HACK: javafx is stupid
         quickHackSleep();
-        Platform.runLater(() -> commandTable.edit(row, commandColumn));
+        Platform.runLater(() -> commandTable.edit(row, column));
     }
 
     private void quickHackSleep() {
@@ -483,9 +484,9 @@ public class CommandTableController {
         }
     }
 
-    public boolean editSelected() {
+    public boolean editSelected(TreeTableColumn<CommandTableRow, String> column) {
         if (getSelectedItems().size() == 1) {
-            editRow(commandTable.getRow(getSelectedItems().get(0)));
+            editRow(commandTable.getRow(getSelectedItems().get(0)), column);
             return true;
         }
 
