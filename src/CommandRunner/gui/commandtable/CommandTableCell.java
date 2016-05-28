@@ -20,4 +20,12 @@ class CommandTableCell extends TextFieldTreeTableCell<CommandTableRow, String> {
             setTooltip(null);
         }
     }
+
+    @Override
+    public void commitEdit(String newValue) {
+        super.commitEdit(newValue);
+
+        //HACK: javafx is stupid
+        getTableColumn().getTreeTableView().requestFocus();
+    }
 }

@@ -21,21 +21,6 @@ public enum CommandStatus {
         }
     }
 
-    public String getStringValue() {
-        switch (this) {
-            case RUNNING:
-                return "running";
-            case IDLE:
-                return "idle";
-            case OK:
-                return "ok";
-            case FAIL:
-                return "fail";
-            default:
-                return "?";
-        }
-    }
-
     static void sortCommandStatuses(List<CommandStatus> commandStatusList) {
         commandStatusList.sort((s1, s2) -> {
             boolean firstRunning = s1.equals(RUNNING);

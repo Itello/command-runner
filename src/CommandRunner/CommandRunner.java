@@ -6,6 +6,7 @@ import CommandRunner.gui.commandtable.CommandTableRow;
 import CommandRunner.gui.fxml.MainController;
 import javafx.application.Application;
 import javafx.application.Platform;
+import javafx.collections.ObservableList;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
@@ -32,6 +33,10 @@ public class CommandRunner extends Application implements CommandQueueListener, 
     private static final String SETTINGS_FXML = "gui/fxml/settings.fxml";
     private static final String ABOUT_FXML = "gui/fxml/about.fxml";
     private static final String VARIABLE_SYMBOL = "#";
+    private static final String DARK_CSS = "css/dark.css";
+    private static final String LIGHT_CSS = "css/light.css";
+    private static final String MAIN_CSS = "css/main.css";
+
 
     private static CommandRunner instance = null;
 
@@ -85,7 +90,7 @@ public class CommandRunner extends Application implements CommandQueueListener, 
             primaryStage.getIcons().add(new Image("png/command.png"));
             primaryStage.setOnCloseRequest(this::onClose);
             WindowLayout windowLayout = programState.getWindowLayout();
-            mainScene = createScene(root, windowLayout.getTheme());
+            mainScene = createScene(root);
             primaryStage.setScene(mainScene);
             primaryStage.setWidth(windowLayout.getWindowWidth());
             primaryStage.setHeight(windowLayout.getWindowHeight());
@@ -116,11 +121,12 @@ public class CommandRunner extends Application implements CommandQueueListener, 
         alert.setHeaderText("You are about to exit the program with unsaved changes.");
         alert.setContentText("If you do not save, all changes since the last save will be lost.");
 
-        final ButtonType buttonTypeSave = new ButtonType("Save", ButtonBar.ButtonData.YES);
+        final ButtonType buttonTypeSave = new ButtonType("Save");
         final ButtonType buttonTypeExit = new ButtonType("Exit without saving", ButtonBar.ButtonData.NO);
         final ButtonType buttonTypeCancelClose = new ButtonType("Cancel exit", ButtonBar.ButtonData.CANCEL_CLOSE);
 
         alert.getButtonTypes().setAll(buttonTypeSave, buttonTypeCancelClose, buttonTypeExit);
+        setStyleSheets(alert.getDialogPane().getStylesheets());
 
         alert.showAndWait().ifPresent(result -> {
             if (result == buttonTypeSave) {
@@ -131,18 +137,29 @@ public class CommandRunner extends Application implements CommandQueueListener, 
         });
     }
 
-    private Scene createScene(Parent root, String theme) {
+    private Scene createScene(Parent root) {
         Scene scene = new Scene(root);
-        setStyleSheetForScene(theme, scene);
+        setStyleSheetForScene(scene);
         return scene;
     }
 
-    private void setStyleSheetForScene(String theme, Scene scene) {
-        scene.getStylesheets().clear();
+    private void setStyleSheetForScene(Scene scene) {
+        ObservableList<String> stylesheets = scene.getStylesheets();
+        setStyleSheets(stylesheets);
+    }
+
+    private void setStyleSheets(ObservableList<String> stylesheets) {
+        stylesheets.clear();
+        stylesheets.add(MAIN_CSS);
+        stylesheets.add(cssString());
+    }
+
+    private String cssString() {
+        String theme = getProgramState().getWindowLayout().getTheme();
         if (theme.equals(WindowLayout.LIGHT_THEME)) {
-            scene.getStylesheets().add("css/light.css");
+            return LIGHT_CSS;
         } else {
-            scene.getStylesheets().add("css/dark.css");
+            return DARK_CSS;
         }
     }
 
@@ -152,7 +169,7 @@ public class CommandRunner extends Application implements CommandQueueListener, 
         Stage settingsStage = new Stage();
         settingsStage.setTitle("Settings");
         settingsStage.getIcons().add(new Image("png/command.png"));
-        Scene mainScene = createScene(root, programState.getWindowLayout().getTheme());
+        Scene mainScene = createScene(root);
         settingsStage.setScene(mainScene);
         settingsStage.show();
     }
@@ -321,7 +338,7 @@ public class CommandRunner extends Application implements CommandQueueListener, 
         Stage settingsStage = new Stage();
         settingsStage.setTitle("About");
         settingsStage.getIcons().add(new Image("png/command.png"));
-        settingsStage.setScene(createScene(root, programState.getWindowLayout().getTheme()));
+        settingsStage.setScene(createScene(root));
         settingsStage.show();
     }
 
@@ -339,6 +356,6 @@ public class CommandRunner extends Application implements CommandQueueListener, 
     }
 
     public void themeChanged() {
-        setStyleSheetForScene(getProgramState().getWindowLayout().getTheme(), mainScene);
+        setStyleSheetForScene(mainScene);
     }
 }

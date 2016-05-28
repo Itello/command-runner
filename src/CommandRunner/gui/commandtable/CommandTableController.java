@@ -115,6 +115,7 @@ public class CommandTableController {
 
                     return cell;
                 }
+
         );
     }
 

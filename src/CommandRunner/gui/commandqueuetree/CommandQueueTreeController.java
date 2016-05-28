@@ -1,17 +1,12 @@
 package CommandRunner.gui.commandqueuetree;
 
-import CommandRunner.Command;
-import CommandRunner.CommandListener;
-import CommandRunner.CommandQueue;
-import CommandRunner.CommandQueueListener;
-import CommandRunner.CommandStatus;
+import CommandRunner.*;
 import javafx.animation.Animation;
 import javafx.animation.Interpolator;
 import javafx.animation.RotateTransition;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.scene.control.SelectionMode;
-import javafx.scene.control.TextArea;
 import javafx.scene.control.TreeItem;
 import javafx.scene.control.TreeView;
 import javafx.scene.image.Image;
@@ -28,9 +23,12 @@ public class CommandQueueTreeController implements CommandListener, CommandQueue
     private static final Image FAIL_COMMAND_GRAPHIC = new Image("png/fail.png");
 
     private final TreeView<CommandQueueTreeRow> commandQueueTreeView;
-    private final TextArea commandOutputArea;
+    private final LimitTextArea commandOutputArea;
 
-    public CommandQueueTreeController(TreeView<CommandQueueTreeRow> commandQueueTreeView, TextArea commandOutputArea) {
+    private TextAppendThread appendThread;
+    private int runningQueues = 0;
+
+    public CommandQueueTreeController(TreeView<CommandQueueTreeRow> commandQueueTreeView, LimitTextArea commandOutputArea) {
         this.commandQueueTreeView = commandQueueTreeView;
         this.commandOutputArea = commandOutputArea;
         commandQueueTreeView.setCellFactory(p -> new CommandQueueTreeCell());
@@ -45,24 +43,38 @@ public class CommandQueueTreeController implements CommandListener, CommandQueue
 
     private void selectionUpdated(ObservableList<? extends TreeItem<CommandQueueTreeRow>> selection) {
         StringBuilder sb = new StringBuilder();
+        boolean running = false;
         for (TreeItem<CommandQueueTreeRow> commandQueueTreeItemTreeItem : selection) {
+            if (commandQueueTreeItemTreeItem == null) {
+                continue;
+            }
+
             CommandQueueTreeRow item = commandQueueTreeItemTreeItem.getValue();
             if (item instanceof CommandQueueTreeCommandQueueRow) {
                 CommandQueue commandQueue = ((CommandQueueTreeCommandQueueRow) item).getCommandQueue();
                 commandQueue.getCommandOutput().forEach(line -> sb.append(line).append('\n'));
+                running = running || commandQueue.getQueueStatus() == CommandQueue.CommandQueueStatus.Running;
             } else if (item instanceof CommandQueueTreeCommandRow) {
                 Command command = ((CommandQueueTreeCommandRow) item).getCommand();
                 CommandQueue commandQueue = ((CommandQueueTreeCommandRow) item).getCommandQueue();
                 commandQueue.getCommandOutputForCommand(command).forEach(line -> sb.append(line).append('\n'));
+                running = running || commandQueue.getCommandStatus() == CommandStatus.RUNNING;
             }
         }
 
-        commandOutputArea.setText(sb.toString());
+        if (running) {
+            startAppendThread();
+        } else {
+            stopAppendThreadIfRunning();
+        }
+
+        commandOutputArea.setTextLimited(sb.toString());
     }
 
     @Override
     public void commandQueueStarted(CommandQueue commandQueue) {
         commandOutputArea.clear();
+        runningQueues++;
 
         final TreeItem<CommandQueueTreeRow> treeItem;
         if (commandQueue.getCommands().size() > 1) {
@@ -82,6 +94,7 @@ public class CommandQueueTreeController implements CommandListener, CommandQueue
         setItemGraphic(treeItem, RUNNING_COMMAND_GRAPHIC);
         commandQueueTreeView.getRoot().getChildren().add(0, treeItem);
         commandQueueTreeView.getSelectionModel().clearAndSelect(0);
+        startAppendThread();
     }
 
     private void setItemGraphic(TreeItem<CommandQueueTreeRow> treeItem, Image image) {
@@ -102,6 +115,10 @@ public class CommandQueueTreeController implements CommandListener, CommandQueue
 
     @Override
     public void commandQueueFinished(CommandQueue commandQueue) {
+        if (--runningQueues <= 0) {
+            stopAppendThreadIfRunning();
+        }
+
         getTreeItemForQueue(commandQueue)
                 .ifPresent(treeItem -> updateGraphic(commandQueue.getCommandStatus(), treeItem));
     }
@@ -167,10 +184,24 @@ public class CommandQueueTreeController implements CommandListener, CommandQueue
         return Optional.empty();
     }
 
+    private void startAppendThread() {
+        stopAppendThreadIfRunning();
+        appendThread = new TextAppendThread(commandOutputArea);
+        appendThread.setDaemon(true);
+        appendThread.start();
+    }
+
+    private void stopAppendThreadIfRunning() {
+        if (appendThread != null) {
+            appendThread.setDone();
+            appendThread.setTextAreaToNull();
+        }
+    }
+
     @Override
-    public void commandOutput(Command command, String text) {
+    public void commandOutput(Command command, String output) {
         if (isCommandSelected(command)) {
-            commandOutputArea.appendText(text + "\n");
+            appendThread.add(output + '\n');
         }
     }
 
@@ -207,5 +238,16 @@ public class CommandQueueTreeController implements CommandListener, CommandQueue
     public void clearQueue() {
         commandQueueTreeView.getRoot().getChildren().clear();
         commandOutputArea.clear();
+    }
+
+    public void sendInput(String text) {
+        selectedCommandRows()
+                .map(CommandQueueTreeCommandRow::getCommand)
+                .filter(command -> command.getCommandStatus().equals(CommandStatus.RUNNING))
+                .forEach(command -> command.sendInput(text));
+    }
+
+    public void stopAppendingText() {
+        stopAppendThreadIfRunning();
     }
 }

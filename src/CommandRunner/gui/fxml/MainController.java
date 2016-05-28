@@ -2,6 +2,7 @@ package CommandRunner.gui.fxml;
 
 import CommandRunner.CommandRunner;
 import CommandRunner.gui.LayoutChangedListener;
+import CommandRunner.gui.commandqueuetree.LimitTextArea;
 import CommandRunner.gui.StatusBarController;
 import CommandRunner.gui.WindowLayout;
 import CommandRunner.gui.commandqueuetree.CommandQueueTreeController;
@@ -45,7 +46,7 @@ public class MainController implements Initializable {
     @FXML
     private TreeTableColumn<CommandTableRow, String> commentColumn;
     @FXML
-    private TextArea commandOutputArea;
+    private LimitTextArea commandOutputArea;
     @FXML
     private HBox statusBar;
     @FXML
@@ -60,6 +61,8 @@ public class MainController implements Initializable {
     private CheckMenuItem statusBarMenuItem;
     @FXML
     private VBox mainContainer;
+    @FXML
+    private TextField inputTextField;
 
     private CommandQueueTreeController commandQueueTreeController;
     private CommandTableController commandTableController;
@@ -77,6 +80,8 @@ public class MainController implements Initializable {
 
         layoutChangeListeners = new ArrayList<>();
         CommandRunner.getInstance().controllerLoaded(this);
+
+        inputTextField.setOnAction(event -> sendInput());
     }
 
     @FXML
@@ -96,6 +101,7 @@ public class MainController implements Initializable {
 
     @FXML
     private void runSelected(Event event) {
+        commandQueueTreeController.stopAppendingText();
         commandTableController.runSelected(commandQueueTreeController, CommandRunner.getInstance());
     }
 
@@ -143,6 +149,7 @@ public class MainController implements Initializable {
 
     @FXML
     private void runSelectedInParallel(Event event) {
+        commandQueueTreeController.stopAppendingText();
         commandTableController.runSelectedInParallel(commandQueueTreeController);
     }
 
@@ -202,33 +209,33 @@ public class MainController implements Initializable {
             case S:
                 if (event.isControlDown()) {
                     save(event);
-                    break;
                 }
+                break;
             case C:
                 if (event.isControlDown()) {
                     commandTableController.copySelectedToClipBoard();
-                    break;
                 }
+                break;
             case X:
                 if (event.isControlDown()) {
                     commandTableController.cutSelectedToClipBoard();
-                    break;
                 }
+                break;
             case V:
                 if (event.isControlDown()) {
                     commandTableController.pasteSelectedToClipBoard();
-                    break;
                 }
+                break;
             case N:
                 if (event.isControlDown()) {
                     addCommandTableRow(event);
-                    break;
                 }
+                break;
             case G:
                 if (event.isControlDown()) {
                     addSelectedItemsToGroup(event);
-                    break;
                 }
+                break;
             case F2:
                 if (event.isShiftDown()) {
                     consume = commandTableController.editSelected(directoryColumn);
@@ -321,5 +328,10 @@ public class MainController implements Initializable {
         if (showStatusBar) {
             mainContainer.getChildren().add(statusBar);
         }
+    }
+
+    private void sendInput() {
+        commandQueueTreeController.sendInput(inputTextField.getText());
+        inputTextField.clear();
     }
 }

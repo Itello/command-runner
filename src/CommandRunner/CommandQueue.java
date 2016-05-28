@@ -1,24 +1,27 @@
 package CommandRunner;
 
 import java.util.*;
+import java.util.concurrent.ArrayBlockingQueue;
 import java.util.stream.Collectors;
 
-import static CommandRunner.CommandStatus.RUNNING;
 import static CommandRunner.CommandStatus.sortCommandStatuses;
 
 public class CommandQueue implements CommandListener {
 
-    private enum CommandQueueStatus {
+    private final static int MAX_OUTPUT_CAPACITY = 1024;
+
+    public enum CommandQueueStatus {
         Stopped,
         Running,
         Stopping
     }
 
     private final List<CommandQueueListener> listeners;
-    private final Map<Command, List<String>> commandOutputs;
+    private final Map<Command, ArrayBlockingQueue<String>> commandOutputs;
 
     private int commandToRunIndex;
     private List<Command> commands;
+
     private CommandQueueStatus status;
 
     CommandQueue(CommandQueueListener... listeners) {
@@ -99,27 +102,33 @@ public class CommandQueue implements CommandListener {
 
     @Override
     public void commandOutput(Command command, String text) {
-        List<String> outputForCommand = getCommandOutput(command);
-
+        ArrayBlockingQueue<String> outputForCommand = getCommandOutput(command);
+        if (outputForCommand.size() >= MAX_OUTPUT_CAPACITY) {
+            try {
+                outputForCommand.take();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
         outputForCommand.add(text);
     }
 
-    private List<String> getCommandOutput(Command command) {
-        List<String> outputForCommand = commandOutputs.get(command);
+    private ArrayBlockingQueue<String> getCommandOutput(Command command) {
+        ArrayBlockingQueue<String> outputForCommand = commandOutputs.get(command);
         if (outputForCommand == null) {
-            outputForCommand = new ArrayList<>();
+            outputForCommand = new ArrayBlockingQueue<>(MAX_OUTPUT_CAPACITY);
             commandOutputs.put(command, outputForCommand);
         }
         return outputForCommand;
     }
 
-    public List<String> getCommandOutput() {
-        return commandOutputs.values().stream()
-                .reduce(new ArrayList<>(), (a, b) -> {
-                            a.addAll(b);
-                            return a;
-                        }
-                );
+    public ArrayBlockingQueue<String> getCommandOutput() {
+        return commands.stream()
+                .map(this::getCommandOutput)
+                .reduce(new ArrayBlockingQueue<>(MAX_OUTPUT_CAPACITY), (a, b) -> {
+                    a.addAll(b);
+                    return a;
+                });
     }
 
     public List<Command> getCommands() {
@@ -144,11 +153,15 @@ public class CommandQueue implements CommandListener {
         return commands.contains(command);
     }
 
-    public List<String> getCommandOutputForCommand(Command command) {
+    public ArrayBlockingQueue<String> getCommandOutputForCommand(Command command) {
         if (isCommandInCommandQueue(command)) {
             return getCommandOutput(command);
         }
 
         throw new IllegalArgumentException("command not in command queue!");
+    }
+
+    public CommandQueueStatus getQueueStatus() {
+        return status;
     }
 }

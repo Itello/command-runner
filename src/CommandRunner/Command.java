@@ -2,9 +2,7 @@ package CommandRunner;
 
 import javafx.application.Platform;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.InputStreamReader;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -17,6 +15,7 @@ public class Command {
     private CommandStatus commandStatus;
 
     private final List<CommandListener> commandListeners;
+    private BufferedWriter writer;
 
     public Command(String commandDirectory, String commandNameAndArguments, String comment) {
         this.commandNameAndArguments = commandNameAndArguments;
@@ -58,7 +57,18 @@ public class Command {
         commandListeners.add(listener);
     }
 
+    public void sendInput(String input) {
+        try {
+            writer.write(input);
+            writer.newLine();
+            writer.flush();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
     void execute() {
+        BufferedReader reader = null;
         try {
             ProcessBuilder builder = new ProcessBuilder(commandNameAndArguments.split(" "))
                     .redirectErrorStream(true);
@@ -71,27 +81,37 @@ public class Command {
             commandStatus = CommandStatus.RUNNING;
             process = builder.start();
             InputStreamReader inputStreamReader = new InputStreamReader(process.getInputStream());
-            BufferedReader bufferedReader = new BufferedReader(inputStreamReader);
+            reader = new BufferedReader(inputStreamReader);
+            writer = new BufferedWriter(new OutputStreamWriter(process.getOutputStream()));
 
             String lineRead;
-            while ((lineRead = bufferedReader.readLine()) != null) {
+            while ((lineRead = reader.readLine()) != null) {
                 final String line = lineRead;
-                Platform.runLater(
-                        () -> commandListeners.forEach(
-                                listener -> listener.commandOutput(this, line)
-                        )
-                );
+                commandListeners.forEach(listener -> listener.commandOutput(this, line));
             }
 
             commandStatus = CommandStatus.createCommandStatus(process.waitFor());
         } catch (Exception e) {
             Platform.runLater(
-                    () -> commandListeners.forEach(
-                            listener -> listener.commandOutput(this, e.getMessage())
-                    )
+                    () -> {
+                        String message = e.getMessage() == null ? "" : e.getMessage();
+                        commandListeners.forEach(
+                                listener -> listener.commandOutput(this, e.getClass().getSimpleName() + ":" + message)
+                        );
+                    }
             );
             this.commandStatus = CommandStatus.FAIL;
         } finally {
+            try {
+                if (writer != null) {
+                    writer.close();
+                }
+                if (reader != null) {
+                    reader.close();
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
             Platform.runLater(
                     () -> {
                         commandListeners.forEach(listener -> listener.commandExecuted(this));
