@@ -57,7 +57,7 @@ public class CommandTableController {
                     TreeTableCell<CommandTableRow, String> cell = getTooltipTextFieldTreeTableCell();
 
                     // highlight drop target by changing background color:
-                    cell.setOnDragEntered(event -> cell.setStyle("-fx-background-color: gold;"));
+                    cell.setOnDragEntered(event -> cell.setStyle("-fx-background-color: -fx-cellDragEnter;"));
                     cell.setOnDragExited(event -> cell.setStyle(""));
                     cell.setOnDragOver(event -> event.acceptTransferModes(TransferMode.MOVE, TransferMode.COPY));
 

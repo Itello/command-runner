@@ -6,4 +6,6 @@ public interface LayoutChangedListener {
     void tableCommandColumnWidthChanged(int to);
     void tableDirectoryColumnWidthChanged(int to);
     void tableCommentColumnWidthChanged(int to);
+    void themeChanged(String theme);
+    void showStatusBarChanged(boolean showStatusBar);
 }

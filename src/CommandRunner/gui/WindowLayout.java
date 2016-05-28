@@ -4,6 +4,8 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 public class WindowLayout {
+    public static final String DARK_THEME = "DARK_THEME";
+    public static final String LIGHT_THEME = "LIGHT_THEME";
     public static final WindowLayout DEFAULT_LAYOUT =
             new WindowLayout()
                     .setWindowWidth(1040)
@@ -13,7 +15,9 @@ public class WindowLayout {
                     .setTableCommandColumnWidth(490)
                     .setTableDirectoryColumnWidth(250)
                     .setTableCommentColumnWidth(100)
-                    .setMaximized(false);
+                    .setMaximized(false)
+                    .setTheme(LIGHT_THEME)
+                    .setShowStatusBar(true);
 
     private static final String WINDOW_WIDTH = "WINDOW_WIDTH";
     private static final String WINDOW_HEIGHT = "WINDOW_HEIGHT";
@@ -23,6 +27,8 @@ public class WindowLayout {
     private static final String TABLE_COMMAND_COLUMN_WIDTH = "TABLE_COMMAND_COLUMN_WIDTH";
     private static final String TABLE_COMMENT_COLUMN_WIDTH = "TABLE_COMMENT_COLUMN_WIDTH";
     private static final String TABLE_DIRECTORY_COLUMN_WIDTH = "TABLE_DIRECTORY_COLUMN_WIDTH";
+    private static final String THEME = "THEME";
+    private static final String SHOW_STATUS_BAR = "SHOW_STATUS_BAR";
 
     private int windowWidth;
     private int windowHeight;
@@ -32,6 +38,8 @@ public class WindowLayout {
     private int tableDirectoryColumnWidth;
     private int tableCommentColumnWidth;
     private boolean isMaximized;
+    private String theme;
+    private boolean showStatusBar;
 
     private WindowLayout() {
     }
@@ -44,7 +52,9 @@ public class WindowLayout {
                 .setTableCommandColumnWidth(jsonObject.getInt(TABLE_COMMAND_COLUMN_WIDTH))
                 .setTableDirectoryColumnWidth(jsonObject.getInt(TABLE_DIRECTORY_COLUMN_WIDTH))
                 .setTableCommentColumnWidth(jsonObject.getInt(TABLE_COMMENT_COLUMN_WIDTH))
-                .setMaximized(jsonObject.getBoolean(IS_MAXIMIZED));
+                .setMaximized(jsonObject.getBoolean(IS_MAXIMIZED))
+                .setTheme(jsonObject.getString(THEME))
+                .setShowStatusBar(jsonObject.getBoolean(SHOW_STATUS_BAR));
     }
 
     public WindowLayout setWindowWidth(int windowWidth) {
@@ -87,6 +97,16 @@ public class WindowLayout {
         return this;
     }
 
+    public WindowLayout setTheme(String theme) {
+        this.theme = theme;
+        return this;
+    }
+
+    public WindowLayout setShowStatusBar(boolean showStatusBar) {
+        this.showStatusBar = showStatusBar;
+        return this;
+    }
+
     public int getWindowWidth() {
         return windowWidth;
     }
@@ -119,6 +139,14 @@ public class WindowLayout {
         return isMaximized;
     }
 
+    public String getTheme() {
+        return theme;
+    }
+
+    public boolean isShowStatusBar() {
+        return showStatusBar;
+    }
+
     public JSONObject jsonObject() throws JSONException {
         return new JSONObject()
                 .put(WINDOW_WIDTH, windowWidth)
@@ -128,6 +156,8 @@ public class WindowLayout {
                 .put(TABLE_COMMAND_COLUMN_WIDTH, tableCommandColumnWidth)
                 .put(TABLE_DIRECTORY_COLUMN_WIDTH, tableDirectoryColumnWidth)
                 .put(TABLE_COMMENT_COLUMN_WIDTH, tableCommentColumnWidth)
-                .put(IS_MAXIMIZED, isMaximized);
+                .put(IS_MAXIMIZED, isMaximized)
+                .put(THEME, theme)
+                .put(SHOW_STATUS_BAR, showStatusBar);
     }
 }

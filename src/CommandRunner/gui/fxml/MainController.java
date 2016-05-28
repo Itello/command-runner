@@ -15,6 +15,7 @@ import javafx.fxml.Initializable;
 import javafx.scene.control.*;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.VBox;
 import javafx.scene.shape.Rectangle;
 import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
@@ -51,6 +52,14 @@ public class MainController implements Initializable {
     private Rectangle memoryBar;
     @FXML
     private Label memoryLabel;
+    @FXML
+    private CheckMenuItem lightThemeMenuItem;
+    @FXML
+    private CheckMenuItem darkThemeMenuItem;
+    @FXML
+    private CheckMenuItem statusBarMenuItem;
+    @FXML
+    private VBox mainContainer;
 
     private CommandQueueTreeController commandQueueTreeController;
     private CommandTableController commandTableController;
@@ -58,7 +67,6 @@ public class MainController implements Initializable {
 
     @Override
     public void initialize(URL fxmlFileLocation, ResourceBundle resources) {
-
         System.out.println("javafx.runtime.version: " + System.getProperties().get("javafx.runtime.version"));
         assert commandTable != null : "fx:id=\"commandTable\" was not injected: check FXML file 'main .fxml'.";
         commandTableController = new CommandTableController(commandTable, commandColumn, directoryColumn, commentColumn);
@@ -249,8 +257,11 @@ public class MainController implements Initializable {
         commandColumn.setPrefWidth(windowLayout.getTableCommandColumnWidth());
         directoryColumn.setPrefWidth(windowLayout.getTableDirectoryColumnWidth());
         commentColumn.setPrefWidth(windowLayout.getTableCommentColumnWidth());
-    }
+        checkThemeLayoutItems(windowLayout.getTheme().equals(WindowLayout.LIGHT_THEME));
+        showStatusBar(windowLayout.isShowStatusBar());
 
+        commandTable.requestFocus();
+    }
 
     private void verticalSplitPaneChanged(Number newValue) {
         layoutChangeListeners.forEach(l -> l.verticalDividerPositionChanged(newValue.doubleValue()));
@@ -278,5 +289,37 @@ public class MainController implements Initializable {
         commandColumn.widthProperty().addListener((observable, oldValue, newValue) -> commandColumnWidthChanged(newValue));
         commentColumn.widthProperty().addListener((observable, oldValue, newValue) -> commentColumnWidthChanged(newValue));
         directoryColumn.widthProperty().addListener((observable, oldValue, newValue) -> directoryColumnWidthChanged(newValue));
+    }
+
+    public void lightThemeSelected(ActionEvent actionEvent) {
+        layoutChangeListeners.forEach(l -> l.themeChanged(WindowLayout.LIGHT_THEME));
+        CommandRunner.getInstance().themeChanged();
+        checkThemeLayoutItems(true);
+    }
+
+    public void darkThemeSelected(ActionEvent actionEvent) {
+        layoutChangeListeners.forEach(l -> l.themeChanged(WindowLayout.DARK_THEME));
+        CommandRunner.getInstance().themeChanged();
+        checkThemeLayoutItems(false);
+    }
+
+    private void checkThemeLayoutItems(boolean isLightSelected) {
+        lightThemeMenuItem.setSelected(isLightSelected);
+        darkThemeMenuItem.setSelected(!isLightSelected);
+    }
+
+    public void toggleStatusBar(ActionEvent actionEvent) {
+        boolean showStatusBar = statusBarMenuItem.isSelected();
+        layoutChangeListeners.forEach(l -> l.showStatusBarChanged(showStatusBar));
+        showStatusBar(showStatusBar);
+    }
+
+    private void showStatusBar(boolean showStatusBar) {
+        statusBarMenuItem.setSelected(showStatusBar);
+
+        mainContainer.getChildren().remove(statusBar);
+        if (showStatusBar) {
+            mainContainer.getChildren().add(statusBar);
+        }
     }
 }

@@ -206,6 +206,16 @@ public class ProgramState implements LayoutChangedListener {
         windowLayout.setTableCommentColumnWidth(to);
     }
 
+    @Override
+    public void themeChanged(String theme) {
+        windowLayout.setTheme(theme);
+    }
+
+    @Override
+    public void showStatusBarChanged(boolean showStatusBar) {
+        windowLayout.setShowStatusBar(showStatusBar);
+    }
+
     WindowLayout getWindowLayout() {
         return windowLayout;
     }

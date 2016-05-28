@@ -42,6 +42,7 @@ public class CommandRunner extends Application implements CommandQueueListener, 
     private TreeItem<CommandTableRow> rootNode;
     private boolean runningWithParameters = false;
     private ArrayDeque<CommandQueue> runningQueues;
+    private Scene mainScene;
 
     @SuppressWarnings("unused")
     public CommandRunner() throws Exception {
@@ -82,9 +83,10 @@ public class CommandRunner extends Application implements CommandQueueListener, 
             Parent root = FXMLLoader.load(getClass().getResource("gui/fxml/main.fxml"));
             primaryStage.setTitle(PROGRAM_TITLE);
             primaryStage.getIcons().add(new Image("png/command.png"));
-            primaryStage.setScene(createScene(root));
             primaryStage.setOnCloseRequest(this::onClose);
             WindowLayout windowLayout = programState.getWindowLayout();
+            mainScene = createScene(root, windowLayout.getTheme());
+            primaryStage.setScene(mainScene);
             primaryStage.setWidth(windowLayout.getWindowWidth());
             primaryStage.setHeight(windowLayout.getWindowHeight());
             primaryStage.setMaximized(windowLayout.isMaximized());
@@ -129,10 +131,19 @@ public class CommandRunner extends Application implements CommandQueueListener, 
         });
     }
 
-    private Scene createScene(Parent root) {
+    private Scene createScene(Parent root, String theme) {
         Scene scene = new Scene(root);
-        scene.getStylesheets().add("css/style.css");
+        setStyleSheetForScene(theme, scene);
         return scene;
+    }
+
+    private void setStyleSheetForScene(String theme, Scene scene) {
+        scene.getStylesheets().clear();
+        if (theme.equals(WindowLayout.LIGHT_THEME)) {
+            scene.getStylesheets().add("css/light.css");
+        } else {
+            scene.getStylesheets().add("css/dark.css");
+        }
     }
 
     public void addSettingsStage() throws IOException {
@@ -141,7 +152,8 @@ public class CommandRunner extends Application implements CommandQueueListener, 
         Stage settingsStage = new Stage();
         settingsStage.setTitle("Settings");
         settingsStage.getIcons().add(new Image("png/command.png"));
-        settingsStage.setScene(createScene(root));
+        Scene mainScene = createScene(root, programState.getWindowLayout().getTheme());
+        settingsStage.setScene(mainScene);
         settingsStage.show();
     }
 
@@ -309,7 +321,7 @@ public class CommandRunner extends Application implements CommandQueueListener, 
         Stage settingsStage = new Stage();
         settingsStage.setTitle("About");
         settingsStage.getIcons().add(new Image("png/command.png"));
-        settingsStage.setScene(createScene(root));
+        settingsStage.setScene(createScene(root, programState.getWindowLayout().getTheme()));
         settingsStage.show();
     }
 
@@ -324,5 +336,9 @@ public class CommandRunner extends Application implements CommandQueueListener, 
         sortCommandStatuses(commandStatusList);
 
         primaryStage.setTitle(commandStatusList.get(0).toString().toLowerCase() + " - " + PROGRAM_TITLE);
+    }
+
+    public void themeChanged() {
+        setStyleSheetForScene(getProgramState().getWindowLayout().getTheme(), mainScene);
     }
 }
