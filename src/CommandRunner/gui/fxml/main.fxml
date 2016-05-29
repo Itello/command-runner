@@ -10,14 +10,14 @@
       prefHeight="768.0" prefWidth="1024.0" xmlns="http://javafx.com/javafx/8.0.65" xmlns:fx="http://javafx.com/fxml/1"
       fx:controller="CommandRunner.gui.fxml.MainController">
     <fx:define>
-        <Image fx:id="playImage" url="png/play.png"/>
-        <Image fx:id="playParallelImage" url="png/playParallel.png"/>
-        <Image fx:id="addImage" url="png/add.png"/>
-        <Image fx:id="folderImage" url="png/folder.png"/>
-        <Image fx:id="removeImage" url="png/remove.png"/>
-        <Image fx:id="killImage" url="png/kill.png"/>
-        <Image fx:id="stopImage" url="png/stop.png"/>
-        <Image fx:id="clearImage" url="png/clear.png"/>
+        <Image fx:id="playImage" url="/png/play.png"/>
+        <Image fx:id="playParallelImage" url="/png/playParallel.png"/>
+        <Image fx:id="addImage" url="/png/add.png"/>
+        <Image fx:id="folderImage" url="/png/folder.png"/>
+        <Image fx:id="removeImage" url="/png/remove.png"/>
+        <Image fx:id="killImage" url="/png/kill.png"/>
+        <Image fx:id="stopImage" url="/png/stop.png"/>
+        <Image fx:id="clearImage" url="/png/clear.png"/>
     </fx:define>
     <MenuBar>
         <Menu mnemonicParsing="false" text="File">
@@ -140,8 +140,8 @@
                                         <items>
                                             <MenuItem mnemonicParsing="false" onAction="#runSelected"
                                                       text="Run selected"/>
-                                            <MenuItem mnemonicParsing="false" onAction="#runSelected"
-                                                      text="Add below selected"/>
+                                            <MenuItem mnemonicParsing="false" onAction="#addCommandTableRow"
+                                                      text="Add row"/>
                                             <MenuItem mnemonicParsing="false" onAction="#addSelectedItemsToGroup"
                                                       text="Create group for selected"/>
                                             <MenuItem mnemonicParsing="false" onAction="#removeCommandTableRow"
@@ -165,7 +165,7 @@
                                     </padding>
                                     <Separator minWidth="0.0" visible="false" HBox.hgrow="ALWAYS"/>
                                     <Button alignment="CENTER" contentDisplay="CENTER" depthTest="DISABLE"
-                                            maxWidth="25.0" minWidth="30.0" mnemonicParsing="false" onAction="#kill" >
+                                            maxWidth="25.0" minWidth="30.0" mnemonicParsing="false" onAction="#kill">
                                         <graphic>
                                             <ImageView image="$killImage"/>
                                         </graphic>

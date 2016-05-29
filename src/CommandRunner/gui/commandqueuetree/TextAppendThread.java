@@ -37,7 +37,7 @@ class TextAppendThread extends Thread {
     private synchronized void updateGui() {
         Platform.runLater(() -> {
             StringBuilder outputStringsToPrint = reference.getAndSet(null);
-            if (commandOutputArea != null) {
+            if (commandOutputArea != null && outputStringsToPrint.length() > 0) {
                 commandOutputArea.appendTextLimited(outputStringsToPrint.toString());
             }
         });

@@ -335,14 +335,21 @@ public class CommandTableController {
     }
 
     private void editRow(int row, TreeTableColumn<CommandTableRow, String> column) {
-        // HACK: javafx is stupid
-        quickHackSleep();
-        Platform.runLater(() -> commandTable.edit(row, column));
+        new Thread() {
+            @Override
+            public void run() {
+                quickHackSleep();
+                Platform.runLater(() -> {
+                    commandTable.requestFocus();
+                    commandTable.edit(row, column);
+                });
+            }
+        }.start();
     }
 
     private void quickHackSleep() {
         try {
-            Thread.sleep(10);
+            Thread.sleep(50);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }

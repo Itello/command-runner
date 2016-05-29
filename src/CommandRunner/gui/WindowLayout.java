@@ -9,7 +9,7 @@ public class WindowLayout {
     public static final WindowLayout DEFAULT_LAYOUT =
             new WindowLayout()
                     .setWindowWidth(1040)
-                    .setWindowHeight(806)
+                    .setWindowHeight(600)
                     .setVerticalDividerPosition(0.75f)
                     .setHorizontalDividerPosition(0.83f)
                     .setTableCommandColumnWidth(490)

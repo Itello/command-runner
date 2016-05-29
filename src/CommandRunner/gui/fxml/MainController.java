@@ -63,6 +63,8 @@ public class MainController implements Initializable {
     private VBox mainContainer;
     @FXML
     private TextField inputTextField;
+    @FXML
+    private Button addButton;
 
     private CommandQueueTreeController commandQueueTreeController;
     private CommandTableController commandTableController;

@@ -17,10 +17,10 @@ import java.util.Optional;
 import java.util.stream.Stream;
 
 public class CommandQueueTreeController implements CommandListener, CommandQueueListener {
-    private static final Image IDLE_COMMAND_GRAPHIC = new Image("png/pause.png");
-    private static final Image RUNNING_COMMAND_GRAPHIC = new Image("png/running.png");
-    private static final Image DONE_COMMAND_GRAPHIC = new Image("png/done.png");
-    private static final Image FAIL_COMMAND_GRAPHIC = new Image("png/fail.png");
+    private static final Image IDLE_COMMAND_GRAPHIC = new Image("/png/pause.png");
+    private static final Image RUNNING_COMMAND_GRAPHIC = new Image("/png/running.png");
+    private static final Image DONE_COMMAND_GRAPHIC = new Image("/png/done.png");
+    private static final Image FAIL_COMMAND_GRAPHIC = new Image("/png/fail.png");
 
     private final TreeView<CommandQueueTreeRow> commandQueueTreeView;
     private final LimitTextArea commandOutputArea;
@@ -117,6 +117,11 @@ public class CommandQueueTreeController implements CommandListener, CommandQueue
     public void commandQueueFinished(CommandQueue commandQueue) {
         if (--runningQueues <= 0) {
             stopAppendThreadIfRunning();
+        }
+
+        // TODO: hack: dunno why it decides to not even append sometimes in linux
+        if (commandOutputArea.getLength() == 0) {
+            selectionUpdated(commandQueueTreeView.getSelectionModel().getSelectedItems());
         }
 
         getTreeItemForQueue(commandQueue)

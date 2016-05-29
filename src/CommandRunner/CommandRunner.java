@@ -30,6 +30,7 @@ public class CommandRunner extends Application implements CommandQueueListener, 
     public static final String PROGRAM_TITLE = "Command Runner";
     public static final String PROGRAM_VERSION = "0.2b";
 
+    private static final String MAIN_FXML = "gui/fxml/main.fxml";
     private static final String SETTINGS_FXML = "gui/fxml/settings.fxml";
     private static final String ABOUT_FXML = "gui/fxml/about.fxml";
     private static final String VARIABLE_SYMBOL = "#";
@@ -37,10 +38,10 @@ public class CommandRunner extends Application implements CommandQueueListener, 
     private static final String LIGHT_CSS = "css/light.css";
     private static final String MAIN_CSS = "css/main.css";
 
+    private Image commandImage;
+    private final ProgramState programState;
 
     private static CommandRunner instance = null;
-
-    private final ProgramState programState;
     private String runCommand = null;
     private String variables = null;
     private Stage primaryStage;
@@ -85,9 +86,10 @@ public class CommandRunner extends Application implements CommandQueueListener, 
             runningWithParameters = true;
             runCommand(runCommand, variables);
         } else {
-            Parent root = FXMLLoader.load(getClass().getResource("gui/fxml/main.fxml"));
+            commandImage = new Image("/png/command.png");
+            Parent root = FXMLLoader.load(getClass().getResource(MAIN_FXML));
             primaryStage.setTitle(PROGRAM_TITLE);
-            primaryStage.getIcons().add(new Image("png/command.png"));
+            primaryStage.getIcons().add(commandImage);
             primaryStage.setOnCloseRequest(this::onClose);
             WindowLayout windowLayout = programState.getWindowLayout();
             mainScene = createScene(root);
@@ -167,8 +169,8 @@ public class CommandRunner extends Application implements CommandQueueListener, 
         FXMLLoader loader = getFXML(SETTINGS_FXML);
         Parent root = loader.load();
         Stage settingsStage = new Stage();
-        settingsStage.setTitle("Settings");
-        settingsStage.getIcons().add(new Image("png/command.png"));
+        settingsStage.setTitle("Settings - " + PROGRAM_TITLE);
+        settingsStage.getIcons().add(commandImage);
         Scene mainScene = createScene(root);
         settingsStage.setScene(mainScene);
         settingsStage.show();
@@ -336,8 +338,8 @@ public class CommandRunner extends Application implements CommandQueueListener, 
         FXMLLoader loader = getFXML(ABOUT_FXML);
         Parent root = loader.load();
         Stage settingsStage = new Stage();
-        settingsStage.setTitle("About");
-        settingsStage.getIcons().add(new Image("png/command.png"));
+        settingsStage.setTitle("About - " + PROGRAM_TITLE);
+        settingsStage.getIcons().add(commandImage);
         settingsStage.setScene(createScene(root));
         settingsStage.show();
     }
