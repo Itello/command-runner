@@ -51,10 +51,10 @@
                     <VBox layoutX="88.0" layoutY="-21.0" prefHeight="200.0" prefWidth="100.0"
                           AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0"
                           AnchorPane.topAnchor="0.0">
-                        <ButtonBar prefHeight="30.0" prefWidth="200.0" VBox.vgrow="NEVER">
+                        <ButtonBar prefHeight="35.0" prefWidth="200.0" VBox.vgrow="NEVER">
                             <buttons>
-                                <HBox alignment="CENTER" maxHeight="30.0" maxWidth="1.7976931348623157E308"
-                                      minWidth="0.0" prefHeight="30.0" prefWidth="9999.0">
+                                <HBox alignment="CENTER" maxHeight="35.0" maxWidth="1.7976931348623157E308"
+                                      minWidth="0.0" prefHeight="35.0" prefWidth="9999.0">
                                     <Separator minWidth="0.0" visible="false" HBox.hgrow="ALWAYS"/>
                                     <Button alignment="CENTER" contentDisplay="CENTER" maxHeight="25.0"
                                             mnemonicParsing="false" onAction="#runSelected">
@@ -156,10 +156,10 @@
                 <AnchorPane minHeight="0.0" minWidth="0.0" focusTraversable="false">
                     <VBox prefHeight="200.0" prefWidth="100.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0"
                           AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
-                        <ButtonBar buttonMinWidth="0.0" prefHeight="30.0" prefWidth="130.0" VBox.vgrow="NEVER">
+                        <ButtonBar buttonMinWidth="0.0" prefHeight="35.0" prefWidth="130.0" VBox.vgrow="NEVER">
                             <buttons>
                                 <HBox alignment="CENTER" maxWidth="1.7976931348623157E308" minWidth="0.0"
-                                      prefHeight="30.0" prefWidth="9999.0">
+                                      prefHeight="35.0" prefWidth="9999.0">
                                     <padding>
                                         <Insets left="-5.0"/>
                                     </padding>
@@ -218,7 +218,7 @@
             </VBox>
         </AnchorPane>
     </SplitPane>
-    <HBox fx:id="statusBar" maxHeight="30.0" nodeOrientation="RIGHT_TO_LEFT" prefHeight="20.0" prefWidth="9999.0"
+    <HBox fx:id="statusBar" maxHeight="35.0" nodeOrientation="RIGHT_TO_LEFT" prefHeight="20.0" prefWidth="9999.0"
           minWidth="0" VBox.vgrow="NEVER">
         <Rectangle fx:id="memoryBar" arcHeight="5.0" arcWidth="5.0" fill="TRANSPARENT" height="26.0"
                    nodeOrientation="LEFT_TO_RIGHT" stroke="BLACK" strokeType="INSIDE" width="400.0">
