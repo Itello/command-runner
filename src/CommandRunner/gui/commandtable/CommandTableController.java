@@ -340,6 +340,7 @@ public class CommandTableController {
             public void run() {
                 quickHackSleep();
                 Platform.runLater(() -> {
+                    commandTable.scrollTo(row);
                     commandTable.requestFocus();
                     commandTable.edit(row, column);
                 });
