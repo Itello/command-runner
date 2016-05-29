@@ -1,5 +1,6 @@
 package CommandRunner.gui.commandqueuetree;
 
+import javafx.beans.property.StringProperty;
 import javafx.scene.control.TreeCell;
 
 class CommandQueueTreeCell extends TreeCell<CommandQueueTreeRow> {
@@ -11,7 +12,18 @@ class CommandQueueTreeCell extends TreeCell<CommandQueueTreeRow> {
             setText(null);
             setGraphic(null);
         } else {
-            setText(item.nameProperty().getValue());
+            StringProperty stringProperty = item.nameProperty();
+            if (stringProperty == null) {
+                // hack: javafx is stupid
+                if (item instanceof CommandQueueTreeCommandQueueRow) {
+                    setText("{CommandQueue}");
+                } else {
+                    setText("{Command}");
+                }
+            } else {
+                setText(stringProperty.getValue());
+            }
+
             setGraphic(getTreeItem().getGraphic());
         }
     }

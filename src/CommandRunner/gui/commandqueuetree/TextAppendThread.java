@@ -2,38 +2,43 @@ package CommandRunner.gui.commandqueuetree;
 
 import javafx.application.Platform;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
 class TextAppendThread extends Thread {
-    private List<String> strings;
-    private final AtomicReference<List<String>> reference;
+    private StringBuilder outPutStrings;
+    private final AtomicReference<StringBuilder> reference;
     private LimitTextArea commandOutputArea;
     private boolean done;
+    private boolean clearing;
 
     TextAppendThread(LimitTextArea commandOutputArea) {
         this.commandOutputArea = commandOutputArea;
-        strings = new ArrayList<>();
+        outPutStrings = new StringBuilder();
         reference = new AtomicReference<>(null);
     }
 
     @Override
     public void run() {
         while (!done) {
-            if (reference.getAndSet(strings) == null) {
-                updateGui();
+            if (reference.getAndSet(outPutStrings) == null) {
+                synchronized (this) {
+                    while (clearing) {
+                        microSleep();
+                    }
+                    clearing = true;
+                    updateGui();
+                    outPutStrings = new StringBuilder();
+                }
+                clearing = false;
             }
         }
     }
 
-    private void updateGui() {
+    private synchronized void updateGui() {
         Platform.runLater(() -> {
-            List<String> stranger = reference.getAndSet(null);
-            strings = new ArrayList<>();
+            StringBuilder outputStringsToPrint = reference.getAndSet(null);
             if (commandOutputArea != null) {
-                String join = String.join("", stranger);
-                commandOutputArea.appendTextLimited(join);
+                commandOutputArea.appendTextLimited(outputStringsToPrint.toString());
             }
         });
     }
@@ -42,8 +47,19 @@ class TextAppendThread extends Thread {
         this.done = true;
     }
 
-    public void add(String string) {
-        strings.add(string);
+    public synchronized void add(String string) {
+        while (clearing) {
+            microSleep();
+        }
+        outPutStrings.append(string);
+    }
+
+    private void microSleep() {
+        try {
+            Thread.sleep(10);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
     }
 
     void setTextAreaToNull() {
