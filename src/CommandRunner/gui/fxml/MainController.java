@@ -214,19 +214,22 @@ public class MainController implements Initializable {
                 }
                 break;
             case C:
-                if (event.isControlDown()) {
+                if (event.isControlDown() && commandTable.getEditingCell() == null) {
                     commandTableController.copySelectedToClipBoard();
                 }
+                consume = false;
                 break;
             case X:
-                if (event.isControlDown()) {
+                if (event.isControlDown() && commandTable.getEditingCell() == null) {
                     commandTableController.cutSelectedToClipBoard();
                 }
+                consume = false;
                 break;
             case V:
-                if (event.isControlDown()) {
-                    commandTableController.pasteSelectedToClipBoard();
+                if (event.isControlDown() && commandTable.getEditingCell() == null) {
+                    commandTableController.pasteSelectedFromClipBoard();
                 }
+                consume = false;
                 break;
             case N:
                 if (event.isControlDown()) {

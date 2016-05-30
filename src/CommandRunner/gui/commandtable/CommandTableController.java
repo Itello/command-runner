@@ -301,6 +301,8 @@ public class CommandTableController {
                 final ButtonType buttonTypeOK = new ButtonType("OK");
                 final ButtonType buttonTypeCancel = new ButtonType("Cancel", ButtonBar.ButtonData.CANCEL_CLOSE);
 
+                CommandRunner.getInstance().setStyleSheets(alert.getDialogPane().getStylesheets());
+
                 alert.getButtonTypes().setAll(buttonTypeOK, buttonTypeCancel);
 
                 final Optional<ButtonType> result = alert.showAndWait();
@@ -476,7 +478,7 @@ public class CommandTableController {
         removeSelectedCommandTableRows();
     }
 
-    public void pasteSelectedToClipBoard() {
+    public void pasteSelectedFromClipBoard() {
         Clipboard clipboard = Clipboard.getSystemClipboard();
 
         List<File> files = clipboard.getFiles();

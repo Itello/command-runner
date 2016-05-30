@@ -26,7 +26,9 @@ public class Command {
     }
 
     public Command copy() {
-        return new Command(commandDirectory, commandNameAndArguments, commandComment);
+        final Command command =  new Command(commandDirectory, commandNameAndArguments, commandComment);
+        command.parentCommandDirectory = parentCommandDirectory;
+        return command;
     }
 
     public String getCommandComment() {

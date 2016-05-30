@@ -150,7 +150,7 @@ public class CommandRunner extends Application implements CommandQueueListener, 
         setStyleSheets(stylesheets);
     }
 
-    private void setStyleSheets(ObservableList<String> stylesheets) {
+    public void setStyleSheets(ObservableList<String> stylesheets) {
         stylesheets.clear();
         stylesheets.add(MAIN_CSS);
         stylesheets.add(cssString());
