@@ -28,7 +28,7 @@ import static CommandRunner.gui.commandtable.CommandTableRowTreeItemListManipula
 
 public class CommandRunner extends Application implements CommandQueueListener, CommandListener {
     public static final String PROGRAM_TITLE = "Command Runner";
-    public static final String PROGRAM_VERSION = "0.2b";
+    public static final String PROGRAM_VERSION = "0.2.1b";
 
     private static final String MAIN_FXML = "gui/fxml/main.fxml";
     private static final String SETTINGS_FXML = "gui/fxml/settings.fxml";
@@ -56,15 +56,19 @@ public class CommandRunner extends Application implements CommandQueueListener, 
             throw new Exception("There can be only one");
         }
         programState = new ProgramState();
-        instance = this;
+        setInstance(this);
     }
 
-    private FXMLLoader getFXML(String fxml) {
-        return new FXMLLoader(getClass().getResource(fxml));
+    private static void setInstance(CommandRunner commandRunnerInstance) {
+        instance = commandRunnerInstance;
     }
 
     public static CommandRunner getInstance() {
         return instance;
+    }
+
+    public static void main(String[] args) {
+        launch(args);
     }
 
     @Override
@@ -176,8 +180,8 @@ public class CommandRunner extends Application implements CommandQueueListener, 
         settingsStage.show();
     }
 
-    public static void main(String[] args) {
-        launch(args);
+    private FXMLLoader getFXML(String fxml) {
+        return new FXMLLoader(getClass().getResource(fxml));
     }
 
     public void controllerLoaded(MainController controller) {
