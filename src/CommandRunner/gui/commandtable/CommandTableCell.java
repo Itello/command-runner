@@ -12,6 +12,7 @@ class CommandTableCell extends TextFieldTreeTableCell<CommandTableRow, String> {
     @Override
     public void updateItem(String item, boolean empty) {
         super.updateItem(item, empty);
+
         if (!empty) {
             setText(item);
             setTooltip(new Tooltip(item));

@@ -4,8 +4,6 @@ import CommandRunner.*;
 import javafx.application.Platform;
 import javafx.collections.ObservableList;
 import javafx.scene.control.*;
-import javafx.scene.image.Image;
-import javafx.scene.image.ImageView;
 import javafx.scene.input.*;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -20,9 +18,6 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 public class CommandTableController {
-    private static final Image FOLDER_ICON = new Image("png/folder.png");
-    private static final Image COMMAND_ICON = new Image("png/command.png");
-
     private final TreeTableView<CommandTableRow> commandTable;
     private final TreeTableColumn<CommandTableRow, String> commandColumn;
 
@@ -51,10 +46,10 @@ public class CommandTableController {
         commandColumn.setOnEditCommit(event ->
                 event.getTreeTablePosition().getTreeItem().getValue().setCommandNameAndArguments(event.getNewValue()));
 
-        directoryColumn.setCellFactory(param -> getTooltipTextFieldTreeTableCell());
-        commentColumn.setCellFactory(param -> getTooltipTextFieldTreeTableCell());
+        directoryColumn.setCellFactory(param -> new CommandTableCell());
+        commentColumn.setCellFactory(param -> new CommandTableCell());
         commandColumn.setCellFactory(param -> {
-                    TreeTableCell<CommandTableRow, String> cell = getTooltipTextFieldTreeTableCell();
+                    final CommandTableCell cell = new CommandTableIconCell();
 
                     // highlight drop target by changing background color:
                     cell.setOnDragEntered(event -> cell.setStyle("-fx-background-color: -fx-cellDragEnter;"));
@@ -249,10 +244,6 @@ public class CommandTableController {
         column.setGraphic(directoryLabel);
     }
 
-    private TreeTableCell<CommandTableRow, String> getTooltipTextFieldTreeTableCell() {
-        return new CommandTableCell();
-    }
-
     public void addSelectedItemsToGroup() {
         final List<TreeItem<CommandTableRow>> selectedItems = new ArrayList<>(getSelectedItems());
         if (selectedItems.isEmpty()) {
@@ -330,9 +321,7 @@ public class CommandTableController {
                 )
         );
 
-
         commandTable.getRoot().getChildren().add(treeItem);
-        fixGraphic(treeItem);
         editRow(commandTable.getRow(treeItem), commandColumn);
     }
 
@@ -395,7 +384,6 @@ public class CommandTableController {
 
     public void setRoot(TreeItem<CommandTableRow> commandTreeNode) {
         commandTable.setRoot(commandTreeNode);
-        fixGraphicHierarchically(commandTreeNode);
         commandTable.getRoot().setExpanded(true);
         commandTable.setShowRoot(false);
     }
@@ -414,29 +402,11 @@ public class CommandTableController {
 
         TreeItem<CommandTableRow> createdTreeItem = new TreeItem<>(createdRow);
 
-        fixGraphic(createdTreeItem);
-
         if (!treeItem.getChildren().isEmpty()) {
             treeItem.getChildren().forEach(child -> createdTreeItem.getChildren().add(copyTreeItem(child)));
         }
 
         return createdTreeItem;
-    }
-
-    private void fixGraphic(TreeItem<CommandTableRow> treeItem) {
-        if (treeItem.getValue() instanceof CommandTableGroupRow) {
-            treeItem.setGraphic(new ImageView(FOLDER_ICON));
-        } else if (treeItem.getValue() instanceof CommandTableCommandRow) {
-            treeItem.setGraphic(new ImageView(COMMAND_ICON));
-        }
-    }
-
-    private void fixGraphicHierarchically(TreeItem<CommandTableRow> treeItem) {
-        fixGraphic(treeItem);
-
-        if (!treeItem.getChildren().isEmpty()) {
-            treeItem.getChildren().forEach(this::fixGraphicHierarchically);
-        }
     }
 
     public TreeItem<CommandTableRow> getRoot() {

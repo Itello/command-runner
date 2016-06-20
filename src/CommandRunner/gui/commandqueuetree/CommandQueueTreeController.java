@@ -37,7 +37,7 @@ public class CommandQueueTreeController implements CommandListener, CommandQueue
         commandQueueTreeView.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
 
         commandQueueTreeView.getSelectionModel().getSelectedItems().addListener(
-                (ListChangeListener<? super TreeItem<CommandQueueTreeRow>>) listener -> selectionUpdated(listener.getList())
+                (ListChangeListener<TreeItem<CommandQueueTreeRow>>) listener -> selectionUpdated(listener.getList())
         );
     }
 
