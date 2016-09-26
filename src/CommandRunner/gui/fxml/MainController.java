@@ -2,11 +2,11 @@ package CommandRunner.gui.fxml;
 
 import CommandRunner.CommandRunner;
 import CommandRunner.gui.LayoutChangedListener;
-import CommandRunner.gui.commandqueuetree.LimitTextArea;
 import CommandRunner.gui.StatusBarController;
 import CommandRunner.gui.WindowLayout;
 import CommandRunner.gui.commandqueuetree.CommandQueueTreeController;
 import CommandRunner.gui.commandqueuetree.CommandQueueTreeRow;
+import CommandRunner.gui.commandqueuetree.LimitTextArea;
 import CommandRunner.gui.commandtable.CommandTableController;
 import CommandRunner.gui.commandtable.CommandTableRow;
 import javafx.event.ActionEvent;
@@ -165,9 +165,10 @@ public class MainController implements Initializable {
 
         verticalSplitPane.setDividerPosition(0, DEFAULT_LAYOUT.getVerticalDividerPosition());
         horizontalSplitPane.setDividerPosition(0, DEFAULT_LAYOUT.getHorizontalDividerPosition());
-        commandColumn.setPrefWidth(DEFAULT_LAYOUT.getTableCommandColumnWidth());
-        directoryColumn.setPrefWidth(DEFAULT_LAYOUT.getTableDirectoryColumnWidth());
-        commentColumn.setPrefWidth(DEFAULT_LAYOUT.getTableCommentColumnWidth());
+
+        setWidth(commandColumn, DEFAULT_LAYOUT.getTableCommandColumnWidth());
+        setWidth(directoryColumn, DEFAULT_LAYOUT.getTableDirectoryColumnWidth());
+        setWidth(commentColumn, DEFAULT_LAYOUT.getTableCommentColumnWidth());
 
         verticalSplitPaneChanged(DEFAULT_LAYOUT.getVerticalDividerPosition());
         horizontalSplitPaneChanged(DEFAULT_LAYOUT.getHorizontalDividerPosition());
@@ -266,13 +267,25 @@ public class MainController implements Initializable {
     public void setLayout(WindowLayout windowLayout) {
         verticalSplitPane.setDividerPosition(0, windowLayout.getVerticalDividerPosition());
         horizontalSplitPane.setDividerPosition(0, windowLayout.getHorizontalDividerPosition());
-        commandColumn.setPrefWidth(windowLayout.getTableCommandColumnWidth());
-        directoryColumn.setPrefWidth(windowLayout.getTableDirectoryColumnWidth());
-        commentColumn.setPrefWidth(windowLayout.getTableCommentColumnWidth());
+        setWidth(commandColumn, windowLayout.getTableCommandColumnWidth());
+        setWidth(directoryColumn, windowLayout.getTableDirectoryColumnWidth());
+        setWidth(commentColumn, windowLayout.getTableCommentColumnWidth());
         checkThemeLayoutItems(windowLayout.getTheme().equals(WindowLayout.LIGHT_THEME));
         showStatusBar(windowLayout.isShowStatusBar());
 
         commandTable.requestFocus();
+    }
+
+    private void setWidth(TreeTableColumn<?, ?> column, int width) {
+        final double minWidth = column.getMinWidth();
+        final double maxWidth = column.getMaxWidth();
+        
+        column.setPrefWidth(width);
+        column.setMinWidth(width);
+        column.setMaxWidth(width);
+
+        column.setMinWidth(minWidth);
+        column.setMaxWidth(maxWidth);
     }
 
     private void verticalSplitPaneChanged(Number newValue) {
