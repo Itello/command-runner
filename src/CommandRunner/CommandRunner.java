@@ -28,7 +28,7 @@ import static CommandRunner.gui.commandtable.CommandTableRowTreeItemListManipula
 
 public class CommandRunner extends Application implements CommandQueueListener, CommandListener {
     public static final String PROGRAM_TITLE = "Command Runner";
-    public static final String PROGRAM_VERSION = "0.2.1b";
+    public static final String PROGRAM_VERSION = "0.2.2";
 
     private static final String MAIN_FXML = "gui/fxml/main.fxml";
     private static final String SETTINGS_FXML = "gui/fxml/settings.fxml";
@@ -252,7 +252,8 @@ public class CommandRunner extends Application implements CommandQueueListener, 
     private String replaceVariables(String value, Map<String, String> variableMap) {
         String returnValue = value;
         for (Map.Entry<String, String> entry : variableMap.entrySet()) {
-            returnValue = returnValue.replaceAll(VARIABLE_SYMBOL + entry.getKey(), entry.getValue());
+            String entryValue = entry.getValue().replace("\\", "\\\\");
+            returnValue = returnValue.replaceAll(VARIABLE_SYMBOL + entry.getKey(), entryValue);
         }
 
         return returnValue;

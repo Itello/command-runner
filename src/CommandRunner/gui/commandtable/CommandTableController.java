@@ -69,15 +69,14 @@ public class CommandTableController {
                             List<File> files = dragboard.getFiles();
                             copyFilesToRows(toItem, files);
                         } else {
-                            if (cell.getIndex() == dragStartIndex) {
-                                return;
-                            }
-
                             final boolean copying;
                             if (event.getAcceptedTransferMode().equals(TransferMode.COPY)) {
                                 copying = true;
                             } else if (event.getAcceptedTransferMode().equals(TransferMode.MOVE)) {
                                 copying = false;
+                                if (cell.getIndex() == dragStartIndex) {
+                                    return;
+                                }
                             } else {
                                 return;
                             }
