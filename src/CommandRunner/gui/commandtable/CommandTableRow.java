@@ -3,7 +3,6 @@ package CommandRunner.gui.commandtable;
 import javafx.beans.property.StringProperty;
 
 public class CommandTableRow {
-
     private final StringProperty commandNameAndArguments;
     private final StringProperty commandDirectory;
     private final StringProperty commandComment;

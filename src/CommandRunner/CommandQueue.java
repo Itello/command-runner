@@ -7,7 +7,6 @@ import java.util.stream.Collectors;
 import static CommandRunner.CommandStatus.sortCommandStatuses;
 
 public class CommandQueue implements CommandListener {
-
     private final static int MAX_OUTPUT_CAPACITY = 1024;
 
     public enum CommandQueueStatus {
@@ -142,7 +141,7 @@ public class CommandQueue implements CommandListener {
 
         sortCommandStatuses(commandStatusList);
         CommandStatus commandStatus = commandStatusList.get(0);
-        if (commandStatus == CommandStatus.IDLE && this.status == CommandQueueStatus.Running) {
+        if (commandStatus == CommandStatus.IDLE && status == CommandQueueStatus.Running) {
             // case where we started queue but command didn't have time to set up yet
             return CommandStatus.RUNNING;
         }

@@ -29,7 +29,6 @@ import java.util.ResourceBundle;
 
 import static CommandRunner.gui.WindowLayout.DEFAULT_LAYOUT;
 
-@SuppressWarnings("UnusedDeclaration")
 public class MainController implements Initializable {
     @FXML
     private SplitPane verticalSplitPane;
@@ -279,7 +278,7 @@ public class MainController implements Initializable {
     private void setWidth(TreeTableColumn<?, ?> column, int width) {
         final double minWidth = column.getMinWidth();
         final double maxWidth = column.getMaxWidth();
-        
+
         column.setPrefWidth(width);
         column.setMinWidth(width);
         column.setMaxWidth(width);

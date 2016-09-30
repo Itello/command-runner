@@ -4,7 +4,6 @@ import CommandRunner.Command;
 import javafx.beans.property.SimpleStringProperty;
 
 public class CommandTableCommandRow extends CommandTableRow {
-
     private final Command command;
 
     public CommandTableCommandRow(Command command) {

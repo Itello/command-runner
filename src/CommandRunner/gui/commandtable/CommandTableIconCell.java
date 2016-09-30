@@ -4,9 +4,11 @@ import javafx.scene.control.TreeItem;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 
-public class CommandTableIconCell extends CommandTableCell {
+class CommandTableIconCell extends CommandTableCell {
     private static final Image FOLDER_ICON = new Image("png/folder.png");
     private static final Image COMMAND_ICON = new Image("png/command.png");
+
+    private Image icon;
 
     CommandTableIconCell() {
         super();
@@ -18,7 +20,6 @@ public class CommandTableIconCell extends CommandTableCell {
 
         if (!empty) {
             final TreeItem<CommandTableRow> treeItem = getTreeTableRow().getTreeItem();
-            Image icon = null;
             if (treeItem != null) {
                 CommandTableRow row = treeItem.getValue();
                 if (row instanceof CommandTableGroupRow) {

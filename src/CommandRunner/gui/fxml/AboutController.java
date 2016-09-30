@@ -12,7 +12,6 @@ import javafx.stage.Stage;
 import java.net.URL;
 import java.util.ResourceBundle;
 
-@SuppressWarnings("UnusedDeclaration")
 public class AboutController implements Initializable {
 
     @FXML

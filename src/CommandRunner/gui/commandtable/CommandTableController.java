@@ -55,7 +55,7 @@ public class CommandTableController {
                     cell.setOnDragEntered(event -> cell.setStyle("-fx-background-color: -fx-cellDragEnter;"));
                     cell.setOnDragExited(event -> cell.setStyle(""));
                     cell.setOnDragOver(event -> event.acceptTransferModes(TransferMode.MOVE, TransferMode.COPY));
-
+            
                     cell.setOnDragDropped(event -> {
                         final TreeTableRow<CommandTableRow> treeTableRow = cell.getTreeTableRow();
                         if (treeTableRow == null) {
@@ -321,7 +321,8 @@ public class CommandTableController {
                 )
         );
 
-        commandTable.getRoot().getChildren().add(treeItem);
+        int selectedIndex = commandTable.getSelectionModel().getSelectedIndex();
+        commandTable.getRoot().getChildren().add(selectedIndex+1, treeItem);
         editRow(commandTable.getRow(treeItem), commandColumn);
     }
 
@@ -331,7 +332,8 @@ public class CommandTableController {
             public void run() {
                 quickHackSleep();
                 Platform.runLater(() -> {
-                    commandTable.scrollTo(row);
+                    // if not visible
+                    commandTable.scrollTo(row-5 > 0 ? row - 5 : 0);
                     commandTable.requestFocus();
                     commandTable.edit(row, column);
                 });
