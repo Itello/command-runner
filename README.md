@@ -34,3 +34,5 @@ Command Runner requires Java 8 or later.
 * <kbd>F2</kbd>: edit selected command (command name and arguments)
 * <kbd>SHIFT+F2</kbd>: edit selected directory
 * <kbd>CTRL+F2</kbd>: edit selected comment
+
+## [Change Log](CHANGELOG.md)
