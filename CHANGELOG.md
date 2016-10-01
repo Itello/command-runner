@@ -1,6 +1,6 @@
 # Change Log
 
-## 0.2.2 - 2016-10-03
+## 0.2.2 - 2016-10-01
 ### Added
 * Maven pom
 * CHANGELOG, LICENSE, README
