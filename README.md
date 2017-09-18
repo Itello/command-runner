@@ -6,7 +6,7 @@ Command Runner requires Java 8 or later.
 
 ![screenshot](http://i.imgur.com/1IjlDsL.png "screenshot")
 
-##Some of the functionality
+## Some of the functionality
 * Run selected commands (sequentially or in parallel)
 * Run history log which saves output from each run
 * Create a runnable group
@@ -19,7 +19,7 @@ Command Runner requires Java 8 or later.
   - Example: `--run=comment --variables=name=x,folder=y`, where `comment` is the command comment and `#name` will be replaced with `x`, `#folder` with `y`.
 * Input field for when a command or script requires input
 
-##Keyboard shortcuts (PC)
+## Keyboard shortcuts (PC)
 * <kbd>DEL</kbd>: remove selected commands
 * <kbd>ENTER</kbd>: run selected commands sequentially
 * <kbd>CTRL+ENTER</kbd>: run selected commands in parallel
