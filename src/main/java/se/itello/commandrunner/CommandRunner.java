@@ -28,7 +28,7 @@ import static se.itello.commandrunner.gui.commandtable.CommandTableRowTreeItemLi
 
 public class CommandRunner extends Application implements CommandQueueListener, CommandListener {
     private static final String PROGRAM_TITLE = "Command Runner";
-    private static final String PROGRAM_VERSION = "0.2.2";
+    private static final String PROGRAM_VERSION = "0.2.3";
 
     private static final String MAIN_FXML = "/fxml/main.fxml";
     private static final String SETTINGS_FXML = "/fxml/settings.fxml";

@@ -2,7 +2,6 @@
 
 Command Runner is a GUI for the lazy who don't want to have to remember script parameters or in what order to run commands. 
 Basically a command organizer and executor (like a script) in a JavaFX GUI.
-Command Runner requires Java 8 or later.
 
 ![screenshot](http://i.imgur.com/1IjlDsL.png "screenshot")
 
